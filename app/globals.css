@@ -1,0 +1,238 @@
+/* ============================================================
+   HAVEN KIDS — Design tokens
+   Ported from design/christian-kids-community/project/styles.css
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,700;0,9..144,900;1,9..144,700&family=Nunito:wght@400;600;700;800;900&family=Caveat:wght@500;700&display=swap');
+
+:root {
+  /* ---- Sunshine theme (default) ---- */
+  --bg:          #FFF7E6;
+  --bg-soft:     #FFEFC9;
+  --card:        #FFFFFF;
+  --ink:         #2B2340;
+  --ink-soft:    #5A4E7A;
+  --ink-mute:    #8A82A8;
+
+  --sky:         #7AC7F2;
+  --sky-deep:    #4FA6D9;
+  --coral:       #FF7E6B;
+  --coral-deep:  #E85C47;
+  --gold:        #FFC94A;
+  --gold-deep:   #E8A825;
+  --grass:       #7DCE82;
+  --grass-deep:  #4FB058;
+  --grape:       #B47EE5;
+  --grape-deep:  #8B5AC2;
+  --rose:        #F58BB3;
+  --cream:       #FFF1D6;
+
+  --radius-sm:   10px;
+  --radius:      16px;
+  --radius-lg:   24px;
+  --radius-xl:   32px;
+  --radius-pill: 999px;
+
+  --shadow-sm: 0 2px 0 0 rgba(43,35,64,.08), 0 4px 12px rgba(43,35,64,.06);
+  --shadow:    0 3px 0 0 rgba(43,35,64,.10), 0 10px 24px rgba(43,35,64,.08);
+  --shadow-lg: 0 6px 0 0 rgba(43,35,64,.10), 0 18px 40px rgba(43,35,64,.12);
+
+  --border:    2px solid #2B234014;
+  --border-strong: 3px solid #2B2340;
+
+  --font-display: 'Fraunces', ui-serif, Georgia, serif;
+  --font-body:    'Nunito', ui-sans-serif, system-ui, sans-serif;
+  --font-hand:    'Caveat', cursive;
+}
+
+[data-theme="cloud"] {
+  --bg:       #F3F0FF;
+  --bg-soft:  #E6E0FF;
+  --cream:    #EDE6FF;
+  --sky:      #A8C7FF;
+  --sky-deep: #7AA6F5;
+  --coral:    #FFB3C1;
+  --gold:     #FFE08A;
+  --grass:    #B5E5BC;
+  --grape:    #D1B3FF;
+  --rose:     #FFC9DB;
+}
+
+/* ============================================================
+   Base
+   ============================================================ */
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+
+body {
+  font-family: var(--font-body);
+  background: var(--bg);
+  color: var(--ink);
+  font-weight: 600;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+
+  background-image:
+    radial-gradient(circle at 15% 20%, #FFE28A33 0, transparent 30%),
+    radial-gradient(circle at 85% 70%, #9FD8FF33 0, transparent 30%),
+    radial-gradient(circle at 50% 100%, #FFB4B433 0, transparent 35%);
+}
+
+h1,h2,h3,h4 { font-family: var(--font-display); font-weight: 900; letter-spacing: -0.02em; margin: 0; color: var(--ink); }
+h1 { font-size: 42px; line-height: 1.05; }
+h2 { font-size: 28px; line-height: 1.1; }
+h3 { font-size: 20px; line-height: 1.2; }
+p  { margin: 0; line-height: 1.45; }
+
+button { font-family: inherit; font-weight: 800; cursor: pointer; border: none; background: none; color: inherit; }
+input, textarea { font-family: inherit; font-weight: 600; }
+
+a { color: inherit; text-decoration: none; }
+
+/* ============================================================
+   Reusable primitives
+   ============================================================ */
+.card {
+  background: var(--card);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  border: var(--border);
+}
+
+.chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 12px;
+  background: var(--bg-soft);
+  border-radius: var(--radius-pill);
+  font-size: 13px; font-weight: 800;
+  color: var(--ink-soft);
+  border: 2px solid transparent;
+  white-space: nowrap;
+}
+.chip.is-active { background: var(--ink); color: #fff; }
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 12px 20px;
+  border-radius: var(--radius-pill);
+  font-weight: 800; font-size: 15px;
+  background: var(--ink); color: #fff;
+  box-shadow: 0 4px 0 0 rgba(43,35,64,.35);
+  transition: transform .08s ease, box-shadow .08s ease;
+  white-space: nowrap;
+}
+.btn:hover { transform: translateY(-1px); box-shadow: 0 5px 0 0 rgba(43,35,64,.35); }
+.btn:active { transform: translateY(2px); box-shadow: 0 1px 0 0 rgba(43,35,64,.35); }
+
+.btn.btn-coral { background: var(--coral); box-shadow: 0 4px 0 0 var(--coral-deep); }
+.btn.btn-sky   { background: var(--sky);   box-shadow: 0 4px 0 0 var(--sky-deep); }
+.btn.btn-gold  { background: var(--gold);  box-shadow: 0 4px 0 0 var(--gold-deep); color: var(--ink); }
+.btn.btn-grass { background: var(--grass); box-shadow: 0 4px 0 0 var(--grass-deep); }
+.btn.btn-grape { background: var(--grape); box-shadow: 0 4px 0 0 var(--grape-deep); }
+.btn.btn-ghost { background: #fff; color: var(--ink); box-shadow: 0 4px 0 0 rgba(43,35,64,.18); border: 2px solid #0000000f; }
+.btn.btn-sm    { padding: 8px 14px; font-size: 13px; }
+
+.sticker {
+  display: inline-grid; place-items: center;
+  border-radius: 50%;
+  font-size: 22px;
+  box-shadow: 0 3px 0 0 rgba(43,35,64,.15);
+}
+
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb { background: #2B234022; border-radius: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+
+/* ============================================================
+   App shell layout
+   ============================================================ */
+.app {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  min-height: 100vh;
+}
+.sidebar {
+  position: sticky; top: 0; align-self: start;
+  height: 100vh;
+  padding: 20px 14px;
+  border-right: var(--border);
+  background: #FFFDF5;
+  display: flex; flex-direction: column; gap: 10px;
+  overflow-y: auto;
+}
+[data-theme="cloud"] .sidebar { background: #FAF7FF; }
+
+.main { padding: 0 0 120px; }
+
+/* ============================================================
+   AI Angel chip
+   ============================================================ */
+.angel-float {
+  position: fixed; bottom: 22px; right: 22px; z-index: 200;
+  display: flex; align-items: center; gap: 10px;
+  background: #fff; padding: 10px 16px 10px 10px;
+  border-radius: var(--radius-pill);
+  box-shadow: var(--shadow-lg);
+  border: var(--border);
+  cursor: pointer;
+  transition: transform .12s ease, opacity .2s ease;
+}
+.angel-float:hover { transform: translateY(-2px); }
+.angel-float.is-dim { opacity: .35; }
+.angel-float.is-dim:hover { opacity: 1; }
+
+/* ============================================================
+   Animations
+   ============================================================ */
+@keyframes bob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+@keyframes pop { 0% { transform: scale(.6); opacity: 0; } 60% { transform: scale(1.1); opacity: 1; } 100% { transform: scale(1); } }
+@keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes heartBreak { 0%,70% { transform: scale(1); } 80% { transform: scale(1.3) rotate(-10deg); } 100% { transform: scale(1) rotate(0); opacity: .2; } }
+
+.bob { animation: bob 3s ease-in-out infinite; }
+
+.pill-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.row { display: flex; align-items: center; gap: 12px; }
+.stack { display: flex; flex-direction: column; gap: 12px; }
+.muted { color: var(--ink-mute); }
+.tiny  { font-size: 12px; }
+.small { font-size: 13px; }
+.center { display: grid; place-items: center; }
+.divider { height: 2px; background: #2B234010; border-radius: 2px; }
+
+::selection { background: var(--gold); color: var(--ink); }
+
+/* ============================================================
+   Login screen
+   ============================================================ */
+.login-shell {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background-image:
+    radial-gradient(circle at 15% 20%, #FFE28A55 0, transparent 35%),
+    radial-gradient(circle at 85% 70%, #9FD8FF55 0, transparent 35%),
+    radial-gradient(circle at 50% 100%, #FFB4B455 0, transparent 40%);
+}
+.login-card {
+  width: 100%;
+  max-width: 440px;
+  padding: 36px 32px;
+  border-radius: 32px;
+  background: #fff;
+  border: var(--border);
+  box-shadow: var(--shadow-lg);
+  text-align: center;
+}
+.login-input {
+  width: 100%;
+  padding: 14px 18px;
+  border: 2px solid #2B234014;
+  border-radius: 999px;
+  background: #FFF8E8;
+  font-size: 15px;
+  outline: none;
+}
+.login-input:focus { border-color: var(--gold); }
