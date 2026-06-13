@@ -76,10 +76,16 @@ day-one dependency.
 - Canonical entities with aliases; hierarchical taxonomy; AI-suggested ontology
   updates requiring admin approval. Pure Postgres.
 - **Community governance:** the `member_of` relationship carries a **role**
-  (`owner | admin | member`). Each community has exactly one **owner** and zero
-  or more **admins**; both are `Person` profiles linked to the `Community`
-  entity by a `member_of` edge with the corresponding role. Owner can transfer
-  ownership and appoint/remove admins; admins manage membership and content.
+  (`owner | admin | member`, extensible to `leader | teacher | moderator`).
+  Each community has exactly one **owner** and zero or more **admins**; both are
+  `Person` profiles linked to the `Community` entity by a `member_of` edge with
+  the corresponding role. Owner can transfer ownership and appoint/remove admins;
+  admins manage membership and content. **Join modes** per community:
+  `open | request-to-join | invite-only`.
+- **Nested communities:** a `Community` can contain sub-communities via a
+  self-referential `part_of` relationship (church → ministry → small group; any
+  depth). Sub-communities inherit nothing automatically — visibility is always
+  explicit (see F3 share-grants).
 
 **F3 — Permission Model** *(cross-cutting; precedes any AI retrieval)*
 - The nine scopes (Public, Community, Group, Team, Family, Invite Only,
@@ -92,6 +98,19 @@ day-one dependency.
   owner/admins can moderate, manage membership, post announcements, and adjust
   community visibility; members get standard participation. Enforced by the same
   RLS + app-guard layer.
+- **Composable visibility & cross-sharing (keystone):** every shareable entity —
+  **post, thread, sub-community, whole community** — has a base visibility its
+  author/owner can *widen* via a **share-grant** edge
+  `shared_with(source → target_community, mode, granted_by)`. No copying: the
+  content lives in one place; the permission layer unions a viewer's memberships
+  with active grants to resolve visibility, so a grant is one row and instantly
+  revocable. Grant **mode** is `view` (read-only) or `participate` (comment/post
+  back). Targets: sibling sub-communities, other communities, or public.
+  - **Inbound acceptance required:** opening content *to* another community
+    creates a **pending** inbound share that the target community's owner/admin
+    must **accept** before it appears — prevents content-dumping/spam.
+  - **Author limits:** a community admin can cap how far members may share
+    outward (e.g. a private counseling group disables external sharing).
 
 ### Content & AI tier
 
@@ -127,6 +146,34 @@ Depends on F1 (people), F2 (relationship types), F3 (permission scopes), C4
     **visible to the parent**. No unmonitored kid-to-kid messaging, ever.
 - Mixed adult⇄kid contact follows the kid rules (parent approval + moderation).
 
+### Group productivity & collaboration tier
+
+These make FishHaven productive for *every* group type (churches, ministries,
+homeschool co-ops, studies, youth groups, worship teams). Each depends on F1
+(people), F2 (entities/hierarchy), F3 (visibility + cross-sharing), and most
+benefit from G4 notifications. All respect cross-community share-grants, so a
+resource/event/prayer can be opened to other (sub-)communities like any content.
+
+**G1 — Events & RSVP** *(highest-leverage group add)* — `Event` entities tied to
+a community: date/time/location, RSVP (going / maybe / no), reminders, and
+"add to my calendar" (ICS). Shareable across communities (a joint youth night).
+
+**G2 — Resource / Document Library** — `Resource`/`Document` entities (sermons,
+study guides, song sheets, lesson plans, slides) with files in Supabase Storage.
+Pairs with cross-sharing: open one study to three small groups with a single
+share-grant. Feeds the C5 refinery later.
+
+**G3 — Prayer (first-class entity)** *(extends the existing PrayerPage)* — prayer
+requests as trackable entities: "I prayed" counts, request status incl.
+**answered-prayer**, and cross-community sharing (share a request to a partner
+church). Mission-distinct to the Christian context.
+
+**G4 — Notifications** *(cross-cutting engagement glue)* — real notifications
+(today `NotificationsBell` is a mock): mentions, replies, RSVPs, accepted/pending
+inbound shares, connection requests, answered prayers. Built on a content event
+stream (Postgres `LISTEN/NOTIFY` now; Kafka only at scale). In-app first; email/
+push later.
+
 **C7 — AI Memory & Community Digital Twins** — multi-level memory (community +
 topic), the AI-generated community profile (beliefs, resources, influencers,
 trends, FAQs, expertise, emerging topics).
@@ -143,13 +190,19 @@ graduation table above.
 ## Dependency order
 
 ```
-F1 → F2 → F3 → C4 → S1 → C5 → C6 → C7 → C8
-                         (scale tier woven in on demand)
+F1 → F2 → F3 → C4 → ┬─ S1 (social graph & messaging) ─┬→ C5 → C6 → C7 → C8
+                    ├─ G1 events & RSVP               │
+                    ├─ G2 resource library            │   (scale tier woven
+                    ├─ G3 prayer entity               │    in on demand)
+                    └─ G4 notifications ──────────────┘
 ```
 
-S1 (Social Graph & Messaging) slots after C4 — it needs people (F1), relationship
-types (F2), permission scopes (F3), and the content layer (C4), but is independent
-of the AI tiers (C5–C8) and can be built in parallel with them.
+Once the foundation (F1–F3) and the content layer (C4) exist, the social
+(S1) and group-productivity (G1–G4) sub-projects are mutually independent and can
+be built in parallel, and are independent of the AI tiers (C5–C8). G4
+(notifications) is cross-cutting — many other sub-projects emit into it, so it is
+best started early in this band. Nested communities + cross-sharing is built into
+F2/F3 themselves, not a separate sub-project.
 
 ## Mapping back to external.txt
 
@@ -158,7 +211,9 @@ of the AI tiers (C5–C8) and can be built in parallel with them.
 | Person / Family entities & scopes | F1 |
 | Entity-centric architecture, relationships, ontology | F2 |
 | Community governance (owner / admins / members) | F2 (roles) + F3 (powers) |
+| Nested communities + cross-community sharing | F2 (hierarchy) + F3 (share-grants) |
 | Permission-aware AI; the nine permission scopes | F3 |
+| Events & RSVP / Resource library / Prayer / Notifications | G1 / G2 / G3 / G4 |
 | Raw Layer (posts, comments, messages, documents) | C4 |
 | Knowledge Refinery pipeline | C5 |
 | Hybrid retrieval (keyword + vector + graph), Ask AI | C6 |
