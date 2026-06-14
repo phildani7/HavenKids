@@ -1,9 +1,12 @@
+import NextAuth from "next-auth";
 import { NextResponse, type NextRequest } from "next/server";
-import { auth } from "@/auth";
+import { authConfig } from "@/auth.config";
 
-// Gate /app/* behind a valid session. Everything else (login, api/auth,
-// static assets) is public.
-export default auth((request: NextRequest & { auth: unknown }) => {
+// Edge-safe: middleware uses ONLY auth.config (no adapter, no node:crypto).
+const { auth } = NextAuth(authConfig);
+
+// Gate /app/* behind a valid session. Everything else is public.
+export default auth((request) => {
   const url = request.nextUrl;
   const isProtected = url.pathname.startsWith("/app");
   const session = request.auth;
