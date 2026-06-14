@@ -200,3 +200,54 @@ $$;
 -- EXECUTE from the public/anon/authenticated roles and grant it to service_role.
 revoke execute on all functions in schema public from public, anon, authenticated;
 grant  execute on all functions in schema public to service_role;
+
+-- ============================================================
+-- Auth.js (next-auth) Supabase adapter tables (needed for the
+-- Resend email magic-link provider). Mirrored from schema.sql.
+-- ============================================================
+create schema if not exists next_auth;
+
+grant usage on schema next_auth to service_role;
+grant all on all tables    in schema next_auth to service_role;
+grant all on all sequences in schema next_auth to service_role;
+grant all on all functions in schema next_auth to service_role;
+
+create table if not exists next_auth.users (
+  id            uuid primary key default gen_random_uuid(),
+  name          text,
+  email         text unique,
+  "emailVerified" timestamptz,
+  image         text
+);
+
+create table if not exists next_auth.accounts (
+  id                  uuid primary key default gen_random_uuid(),
+  "userId"            uuid not null references next_auth.users(id) on delete cascade,
+  type                text not null,
+  provider            text not null,
+  "providerAccountId" text not null,
+  refresh_token       text,
+  access_token        text,
+  expires_at          bigint,
+  token_type          text,
+  scope               text,
+  id_token            text,
+  session_state       text,
+  oauth_token_secret  text,
+  oauth_token         text,
+  unique (provider, "providerAccountId")
+);
+
+create table if not exists next_auth.sessions (
+  id            uuid primary key default gen_random_uuid(),
+  "userId"      uuid not null references next_auth.users(id) on delete cascade,
+  expires       timestamptz not null,
+  "sessionToken" text not null unique
+);
+
+create table if not exists next_auth.verification_tokens (
+  identifier text not null,
+  token      text not null unique,
+  expires    timestamptz not null,
+  primary key (identifier, token)
+);

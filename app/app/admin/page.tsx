@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
-import { accountIdForEmail, listProfiles, adminPinIsSet } from "@/lib/accounts";
+import { accountIdForEmail, listProfiles, adminPinIsSet, resolveActiveProfile } from "@/lib/accounts";
 import { getAdminUnlock } from "@/lib/session";
 import { AdminGate } from "./AdminGate";
 import { addChildProfile } from "./actions";
@@ -15,6 +15,9 @@ export default async function AdminPage({
   const accountId = await accountIdForEmail(session.user.email);
   if (!accountId) redirect("/login");
   const sp = await searchParams;
+
+  const active = await resolveActiveProfile(accountId);
+  if (active?.kind === "child") redirect("/app/profiles?choose=1");
 
   const unlocked = (await getAdminUnlock()) === accountId;
   const pinSet = await adminPinIsSet(accountId);

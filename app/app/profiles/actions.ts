@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { accountIdForEmail, listProfiles, verifyProfilePin, createProfile } from "@/lib/accounts";
-import { setActiveProfile, clearAllProfileCookies } from "@/lib/session";
+import { setActiveProfile, clearAllProfileCookies, clearAdminUnlock } from "@/lib/session";
 import { isLocked, recordFailure, resetFailures } from "@/lib/rate-limit";
 
 async function requireAccount(): Promise<string> {
@@ -27,6 +27,7 @@ export async function pickProfile(formData: FormData) {
   if (profile.has_pin) {
     const lockKey = `pin:${personId}`;
     if (isLocked(lockKey)) redirect("/app/profiles?error=locked");
+    if (!pin) redirect(`/app/profiles?pinFor=${personId}`);
     const ok = await verifyProfilePin(personId, pin);
     if (!ok) {
       recordFailure(lockKey, 5, 60_000);
@@ -35,6 +36,7 @@ export async function pickProfile(formData: FormData) {
     resetFailures(lockKey);
   }
 
+  await clearAdminUnlock();
   await setActiveProfile(personId);
   redirect("/app");
 }
