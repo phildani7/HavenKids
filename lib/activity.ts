@@ -1,5 +1,6 @@
-// Client-side helper for logging user activity to Supabase via /api/activity.
-// Fails silently so UI interactions never break on network hiccups.
+// Client-side helper for logging the active profile's activity to Supabase via
+// /api/activity. The server derives the profile from the signed cookie. Fails
+// silently so UI interactions never break on network hiccups.
 
 export type ActivityEvent =
   | "view_page"
