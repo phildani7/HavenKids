@@ -190,3 +190,13 @@ returns int language sql security definer set search_path = public as $$
   select count(*)::int from public.strikes
   where person_id = p_person_id and cleared_at is null;
 $$;
+
+-- ---- Lock down RPC execution ----
+-- SECURITY DEFINER controls what a function does, NOT who may call it. By default
+-- every public function is executable by the anon role, and the anon key is public.
+-- That would expose verify_admin_pin / verify_profile_pin to offline-free PIN
+-- brute force and let anyone spam create_account. These RPCs are called ONLY by
+-- the trusted Next.js server using the server-only service-role key, so revoke
+-- EXECUTE from the public/anon/authenticated roles and grant it to service_role.
+revoke execute on all functions in schema public from public, anon, authenticated;
+grant  execute on all functions in schema public to service_role;
