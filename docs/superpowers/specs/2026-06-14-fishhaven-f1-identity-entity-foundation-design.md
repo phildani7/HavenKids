@@ -74,14 +74,21 @@ All tables in `public`, RLS enabled, privileged writes via `SECURITY DEFINER`
 RPCs (consistent with the existing anon-client + RPC pattern in
 `lib/supabase.ts`).
 
-**Authorization model.** The app uses the anon key with no Supabase-Auth user
-JWT, so `auth.jwt()`-based RLS policies do not meaningfully apply to the app
-path. RLS therefore blocks all *direct* anon reads/writes (defense in depth),
-and the real trust boundary is the **Next.js server**: every RPC call is made
-only after the server has (a) resolved the Auth.js account, (b) read the signed
-`fh_active_profile` cookie, and (c) confirmed that `person_id` belongs to the
-account. RPCs are `SECURITY DEFINER` and authorize strictly on the `person_id`
-the trusted server passes — they are never called from the client.
+**Authorization model.** `SECURITY DEFINER` controls what a function *does*, not
+who may *call* it — by default every `public` function is executable by the
+`anon` role, and the anon key is public. Exposing `verify_admin_pin` /
+`verify_profile_pin` to anon would allow offline-free PIN brute force, and
+`create_account` could be spammed, all bypassing the Next.js server. Therefore
+the migration **revokes EXECUTE on the F1 RPCs from `public`/`anon`/
+`authenticated` and grants it only to `service_role`**. The server calls these
+RPCs with the **server-only service-role key** (never the public anon key, never
+the client). RLS is enabled on all tables with no anon policies, so direct
+PostgREST reads/writes are denied too (defense in depth). The real trust boundary
+is the **Next.js server**: every RPC call is made only after the server has
+(a) resolved the Auth.js account, (b) read the signed `fh_active_profile` cookie,
+and (c) confirmed that `person_id` belongs to the account. (This supersedes the
+earlier "works with just the anon key" note — auth-sensitive RPCs require the
+service-role key.)
 
 ### `accounts`
 | column | type | notes |
