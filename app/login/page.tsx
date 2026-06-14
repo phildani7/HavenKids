@@ -33,13 +33,13 @@ export default async function LoginPage({
             marginTop: 10,
           }}
         >
-          Welcome to Haven Kids
+          Welcome to FishHaven
         </div>
         <h1 style={{ marginTop: 6, fontSize: 32 }}>Come on in, friend 💛</h1>
         <p style={{ marginTop: 10, color: "var(--ink-soft)", fontSize: 14 }}>
           {hasGoogle || hasResend
             ? "Sign in with Google or get a magic link by email. Gabriel is waiting."
-            : "Try it out as a demo kid — Gabriel is waiting."}
+            : "Sign in with Google or get a magic link by email."}
         </p>
 
         {sent && (
@@ -133,41 +133,6 @@ export default async function LoginPage({
             </form>
           </>
         )}
-
-        {/* Demo / bypass — always available */}
-        <div className="row" style={{ marginTop: 18, gap: 10 }}>
-          <div style={{ flex: 1, height: 2, background: "#2B234014", borderRadius: 2 }} />
-          <span className="tiny muted" style={{ fontWeight: 900 }}>
-            OR TRY WITHOUT SIGNUP
-          </span>
-          <div style={{ flex: 1, height: 2, background: "#2B234014", borderRadius: 2 }} />
-        </div>
-
-        <form
-          action={async (formData) => {
-            "use server";
-            const name = String(formData.get("name") || "").trim();
-            await signIn("demo", { name, redirectTo });
-          }}
-          style={{ marginTop: 14 }}
-        >
-          <input
-            className="login-input"
-            type="text"
-            name="name"
-            placeholder="Your kid name (optional)"
-            maxLength={40}
-            autoComplete="off"
-            style={{ marginBottom: 10 }}
-          />
-          <button
-            className="btn btn-coral"
-            type="submit"
-            style={{ width: "100%", justifyContent: "center", padding: "14px 20px", gap: 8 }}
-          >
-            😇 Enter as a Demo Kid
-          </button>
-        </form>
 
         <p className="tiny muted" style={{ marginTop: 18 }}>
           By continuing you agree to kind-words-only and that Gabriel may pause your account after three strikes.

@@ -525,7 +525,7 @@ function AboutTab({ community }: { community: Community }) {
         <div className="divider" style={{ margin: "16px 0" }} />
         <h3>What we&apos;re about</h3>
         <p style={{ marginTop: 6, color: "var(--ink-soft)" }}>
-          A warm, safe corner of Haven Kids for sharing, learning, and growing together in faith and fun. Everyone&apos;s
+          A warm, safe corner of FishHaven for sharing, learning, and growing together in faith and fun. Everyone&apos;s
           welcome. Be kind, be curious, be you.
         </p>
         <div className="divider" style={{ margin: "16px 0" }} />

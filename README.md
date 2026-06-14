@@ -1,4 +1,4 @@
-# Haven Kids
+# FishHaven
 
 A safe, AI-moderated Christian community platform for kids ages 7–18. Built from the handoff bundle in `design/christian-kids-community/`.
 

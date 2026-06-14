@@ -2,7 +2,7 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
 // Anonymous client — safe to use on the server. All privileged
 // writes go through SECURITY DEFINER RPCs (public.log_activity,
-// public.my_activity). That means Haven Kids works with just the
+// public.my_activity). That means FishHaven works with just the
 // anon/publishable key — no service-role key required.
 let anonClient: SupabaseClient | null = null;
 
@@ -16,7 +16,7 @@ export function getSupabaseAnon(): SupabaseClient | null {
 
   anonClient = createClient(url, key, {
     auth: { persistSession: false, autoRefreshToken: false },
-    global: { headers: { "X-Client-Info": "haven-kids" } },
+    global: { headers: { "X-Client-Info": "fishhaven" } },
   });
   return anonClient;
 }
@@ -33,7 +33,7 @@ export function getSupabaseAdmin(): SupabaseClient | null {
   if (!url || !key) return null;
   adminClient = createClient(url, key, {
     auth: { persistSession: false, autoRefreshToken: false },
-    global: { headers: { "X-Client-Info": "haven-kids-admin" } },
+    global: { headers: { "X-Client-Info": "fishhaven-admin" } },
   });
   return adminClient;
 }
