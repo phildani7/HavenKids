@@ -85,3 +85,25 @@ export async function resolveActiveProfile(accountId: string): Promise<Profile |
   const profiles = await listProfiles(accountId);
   return profiles.find((p) => p.id === personId) ?? null;
 }
+
+export async function activeStrikes(personId: string): Promise<number> {
+  const sb = getSupabaseAdmin();
+  if (!sb) return 0;
+  const { data, error } = await sb.rpc("active_strikes", { p_person_id: personId });
+  if (error) throw new Error(error.message);
+  return Number(data ?? 0);
+}
+
+export async function addStrike(personId: string, reason: string) {
+  const sb = getSupabaseAdmin();
+  if (!sb) return;
+  const { error } = await sb.rpc("add_strike", { p_person_id: personId, p_reason: reason });
+  if (error) throw new Error(error.message);
+}
+
+export async function clearStrikes(personId: string) {
+  const sb = getSupabaseAdmin();
+  if (!sb) return;
+  const { error } = await sb.rpc("clear_strikes", { p_person_id: personId });
+  if (error) throw new Error(error.message);
+}

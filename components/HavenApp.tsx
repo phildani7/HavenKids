@@ -44,12 +44,24 @@ export interface ActiveProfile {
 export function HavenApp({
   profile,
   onSignOut,
+  initialStrikes,
 }: {
   profile: ActiveProfile;
   onSignOut: () => void | Promise<void>;
+  initialStrikes: number;
 }) {
   const [route, setRouteState] = useState<Route>({ page: "home" });
-  const [strikes, setStrikes] = useState(0);
+  const [strikes, setStrikes] = useState(initialStrikes);
+
+  // Persist strike changes for the active profile while keeping the UI instant.
+  const bumpStrike = (reason: string) => {
+    setStrikes((s) => s + 1);
+    void import("@/app/app/strikes/actions").then((m) => m.recordStrikeAction(reason));
+  };
+  const resetStrikes = () => {
+    setStrikes(0);
+    void import("@/app/app/strikes/actions").then((m) => m.clearStrikesAction());
+  };
   const [theme, setTheme] = useState<Theme>("sunshine");
   const [avatar, setAvatar] = useState(profile.avatar || "🦄");
 
@@ -90,7 +102,7 @@ export function HavenApp({
           <CommunityPage communityId={route.communityId} setRoute={setRoute} user={user} />
         )}
         {route.page === "doodle" && <DoodlePage user={user} />}
-        {route.page === "chat" && <ChatPage user={user} strikes={strikes} setStrikes={setStrikes} />}
+        {route.page === "chat" && <ChatPage user={user} strikes={strikes} onStrike={bumpStrike} />}
         {route.page === "prayer" && <PrayerPage />}
         {route.page === "profile" && <ProfilePage user={user} strikes={strikes} />}
         {route.page === "parents" && (
@@ -109,6 +121,7 @@ export function HavenApp({
         setTheme={setTheme}
         strikes={strikes}
         setStrikes={setStrikes}
+        onResetStrikes={resetStrikes}
         avatar={avatar}
         setAvatar={setAvatar}
       />
