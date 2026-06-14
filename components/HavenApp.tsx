@@ -55,7 +55,7 @@ export function HavenApp({
 
   // Persist strike changes for the active profile while keeping the UI instant.
   const bumpStrike = (reason: string) => {
-    setStrikes((s) => s + 1);
+    setStrikes((s) => Math.min(3, s + 1)); // 3 strikes = account paused (app premise)
     void import("@/app/app/strikes/actions").then((m) => m.recordStrikeAction(reason));
   };
   const resetStrikes = () => {

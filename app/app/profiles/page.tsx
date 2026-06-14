@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { accountIdForEmail, listProfiles, accountHasChildren } from "@/lib/accounts";
-import { setActiveProfile } from "@/lib/session";
+import { setActiveProfile, clearAdminUnlock } from "@/lib/session";
 import { PickerClient } from "./PickerClient";
 
 export const dynamic = "force-dynamic";
@@ -22,6 +22,7 @@ export default async function ProfilesPage({
   // Auto-skip: a single profile with no PIN goes straight in, unless the user
   // explicitly asked to choose (?choose=1).
   if (profiles.length === 1 && !profiles[0].has_pin && sp.choose !== "1") {
+    await clearAdminUnlock(); // defense-in-depth: never carry an admin unlock into a fresh selection
     await setActiveProfile(profiles[0].id);
     redirect("/app");
   }
