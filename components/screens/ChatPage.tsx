@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import { Angel, Avatar, Hearts } from "@/components/primitives";
 import { logActivity } from "@/lib/activity";
 import { HAVEN_DATA, type User, type ColorKey, type ChatMessageSeed } from "@/lib/data";
+import { moderateMessage } from "@/app/app/chat/actions";
 
 type ChatUser = { name: string; avatar: string; color: ColorKey; isAngel?: boolean };
 interface ChatMessage {
@@ -43,15 +44,13 @@ export function ChatPage({
 
   const messages = byRoom[active] || [];
   const roomMeta = roomsOrder.find((r) => r.key === active)!;
-  const flags = ["dumb", "stupid", "hate", "shut up"];
 
-  const send = () => {
+  const send = async () => {
     if (!msg.trim()) return;
-    const low = msg.toLowerCase();
-    const found = flags.find((f) => low.includes(f));
-    if (found) {
-      logActivity("strike_triggered", { word: found, room: active });
-      setShowStrike({ word: found });
+    const verdict = await moderateMessage(msg);
+    if (verdict.flagged) {
+      logActivity("strike_triggered", { word: verdict.word, room: active });
+      setShowStrike({ word: verdict.word ?? "unkind words" });
       setMsg("");
       return;
     }
@@ -205,7 +204,7 @@ export function ChatPage({
               <input
                 value={msg}
                 onChange={(e) => setMsg(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && send()}
+                onKeyDown={(e) => { if (e.key === "Enter") void send(); }}
                 placeholder={`Say something kind in #${active}… (try 'dumb' to see the angel)`}
                 style={{
                   flex: 1,
@@ -217,7 +216,7 @@ export function ChatPage({
                   outline: "none",
                 }}
               />
-              <button className="btn btn-gold" onClick={send}>
+              <button className="btn btn-gold" onClick={() => void send()}>
                 Send
               </button>
             </div>

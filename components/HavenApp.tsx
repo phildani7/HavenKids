@@ -53,11 +53,8 @@ export function HavenApp({
   const [route, setRouteState] = useState<Route>({ page: "home" });
   const [strikes, setStrikes] = useState(initialStrikes);
 
-  // Persist strike changes for the active profile while keeping the UI instant.
-  const bumpStrike = (reason: string) => {
-    setStrikes((s) => Math.min(3, s + 1)); // 3 strikes = account paused (app premise)
-    void import("@/app/app/strikes/actions").then((m) => m.recordStrikeAction(reason));
-  };
+  // UI count only; the strike is recorded server-side by moderateMessage.
+  const bumpStrike = () => setStrikes((s) => Math.min(3, s + 1));
   const resetStrikes = () => setStrikes(0);
   const [theme, setTheme] = useState<Theme>("sunshine");
   const [avatar, setAvatar] = useState(profile.avatar || "🦄");
