@@ -95,6 +95,38 @@ Tracked since the initial commit; `tsconfig.json` has `incremental: true`. It em
 2. **H1** (next_auth grant ordering — breaks email login on first deploy), **H2** (sidebar brand), **H3** (`server-only`), **H4** (tsbuildinfo).
 3. **H5/H6** before production scale; **M1–M7** as cleanup; **L*** opportunistically.
 
+## Resolution — all findings fixed (2026-06-16)
+
+Every finding above was fixed on `f1-identity-foundation` and verified (typecheck/lint/7 unit tests/build green; DB changes verified on real Supabase Postgres in rolled-back transactions; C1/C2 re-reviewed by an independent Opus security pass — no remaining authorization holes).
+
+| Finding | Fix | Commit |
+|---|---|---|
+| **C1** server-action authorization | New `lib/guards.ts` (`requireActiveAdult` / `requireAdminUnlock`); `addProfile` deleted; `setupAdminPin` overwrite-proof; `addChildProfile` + `clearChildStrikes` require active-adult + admin-unlock; `clearChildStrikes` verifies account ownership | `f6e50a6` |
+| **C2** client-side moderation | `moderateMessage` server action: blocklist + strike recording server-side from the session-derived profile; `bumpStrike` UI-only; `strikes/actions.ts` deleted | `61eb47b` |
+| **H1** next_auth grant ordering | tables created before `grant on all` (verified: service_role gets next_auth privileges) | `4d5ce32` |
+| **H2** sidebar "Haven/Kids" | sidebar wordmark → FishHaven | `ce9960a` |
+| **H3** supabase.ts not server-only | `import "server-only"` added | `ce9960a` |
+| **H4** tsbuildinfo committed | gitignored + `git rm --cached` | `ce9960a` |
+| **H5** PIN keyspace/throttle | PIN min 4 digits numeric (`/^\d{4,}$/`) enforced; durable-store throttle documented as the remaining production step | `f6e50a6` |
+| **H6** unhandled RPC throws | entry routing wraps account resolution in try/catch → `/login?error=service` | `ce9960a` |
+| **M1** solo-adult over-lock | admin gate `!unlocked && (pinSet || hasChildren)` | `f6e50a6` |
+| **M2** missing seed.sql | `supabase/seed.sql` created | `ce9960a` |
+| **M3** write on every request | read-only `account_id_for_email` RPC; write only on first-login fallback | `4d5ce32` / `f6e50a6` |
+| **M4** birth_year dead column | dropped | `4d5ce32` |
+| **M5** empty admin PIN burns attempt | empty-PIN early-out in `unlockAdmin` | `f6e50a6` |
+| **M7** stale README/.env | README + `.env.example` updated (accounts/profiles/admin, service-role required, server-side moderation, migrations) | `ed89c73` |
+| **L1** kid-safe cosmetic | child profiles no longer see the admin/parents nav (real kid-safe behavior) | `ce9960a` |
+| **L2** ParentsPage dead code | deleted | `ce9960a` |
+| **L3** SET NOT NULL unguarded | `delete ... where person_id is null` before the alter | `4d5ce32` |
+| **L4** pgTAP coverage | +4 assertions (child-without-PIN, wrong-PIN, has_pin no-leak, adult-create) → `plan(28)` | `4d5ce32` |
+| **L6** auth route runtime | `export const runtime = "nodejs"` | `ce9960a` |
+| **L7** empty-providers login | explicit "no sign-in method configured" notice | `ce9960a` |
+| **L8** cosmetic branding | `config.toml` project_id + file-header comments → FishHaven | `ce9960a` |
+
+**M6** (account-scoping the activity/strike RPC *signatures*) was **deliberately deferred**: the audit confirmed no live IDOR (every caller pre-checks via `resolveActiveProfile`), and a hot-path RPC signature refactor carries more regression risk than the latent issue. Tracked for a future hardening pass.
+
+**Accepted residual (documented, needs a later sub-project):** chat *message delivery* is still client-side demo state, so a fully tampered client could avoid calling `moderateMessage`; the strike *record* is now server-authoritative, which closes C2 as scoped for F1. Durable (Redis) rate-limiting and nonce-based CSP remain pre-production hardening items.
+
 ## ENV VARS REQUIRED TO RUN F1
 | Var | Required | Where | Public/Secret |
 |---|---|---|---|
