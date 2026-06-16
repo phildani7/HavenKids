@@ -40,7 +40,7 @@ alter table public.people   enable row level security;
 
 create or replace function public.create_account(p_email text)
 returns table(account_id uuid, owner_person_id uuid)
-language plpgsql security definer set search_path = public as $$
+language plpgsql security definer set search_path = public, extensions as $$
 declare a_id uuid; p_id uuid;
 begin
   insert into public.accounts (owner_email) values (p_email)
@@ -58,13 +58,13 @@ begin
 end $$;
 
 create or replace function public.set_admin_pin(p_account_id uuid, p_pin text)
-returns void language sql security definer set search_path = public as $$
+returns void language sql security definer set search_path = public, extensions as $$
   update public.accounts set admin_pin_hash = crypt(p_pin, gen_salt('bf'))
   where id = p_account_id;
 $$;
 
 create or replace function public.verify_admin_pin(p_account_id uuid, p_pin text)
-returns boolean language sql security definer set search_path = public as $$
+returns boolean language sql security definer set search_path = public, extensions as $$
   select coalesce(
     (select admin_pin_hash = crypt(p_pin, admin_pin_hash)
        from public.accounts where id = p_account_id and admin_pin_hash is not null),
@@ -72,19 +72,19 @@ returns boolean language sql security definer set search_path = public as $$
 $$;
 
 create or replace function public.account_has_children(p_account_id uuid)
-returns boolean language sql security definer set search_path = public as $$
+returns boolean language sql security definer set search_path = public, extensions as $$
   select exists(select 1 from public.people where account_id = p_account_id and kind = 'child');
 $$;
 
 create or replace function public.admin_pin_is_set(p_account_id uuid)
-returns boolean language sql security definer set search_path = public as $$
+returns boolean language sql security definer set search_path = public, extensions as $$
   select coalesce((select admin_pin_hash is not null
                      from public.accounts where id = p_account_id), false);
 $$;
 
 create or replace function public.create_profile(
   p_account_id uuid, p_kind text, p_name text, p_avatar text, p_pin text default null)
-returns uuid language plpgsql security definer set search_path = public as $$
+returns uuid language plpgsql security definer set search_path = public, extensions as $$
 declare new_id uuid;
 begin
   if p_kind not in ('adult','child') then
@@ -103,7 +103,7 @@ begin
 end $$;
 
 create or replace function public.verify_profile_pin(p_person_id uuid, p_pin text)
-returns boolean language sql security definer set search_path = public as $$
+returns boolean language sql security definer set search_path = public, extensions as $$
   select coalesce(
     (select pin_hash = crypt(p_pin, pin_hash)
        from public.people where id = p_person_id and pin_hash is not null),
@@ -113,7 +113,7 @@ $$;
 create or replace function public.list_profiles(p_account_id uuid)
 returns table(id uuid, kind text, is_owner boolean, display_name text,
               avatar text, has_pin boolean)
-language sql security definer set search_path = public as $$
+language sql security definer set search_path = public, extensions as $$
   select id, kind, is_owner, display_name, avatar, (pin_hash is not null)
   from public.people where account_id = p_account_id
   order by is_owner desc, created_at asc;
@@ -152,14 +152,14 @@ drop policy if exists "activity_block_direct_write" on public.activity;
 
 create or replace function public.log_activity(
   p_person_id uuid, p_event text, p_data jsonb, p_user_agent text)
-returns void language sql security definer set search_path = public as $$
+returns void language sql security definer set search_path = public, extensions as $$
   insert into public.activity (person_id, event, data, user_agent)
   values (p_person_id, p_event, coalesce(p_data,'{}'::jsonb), p_user_agent);
 $$;
 
 create or replace function public.my_activity(p_person_id uuid, p_limit int)
 returns table(event text, data jsonb, created_at timestamptz)
-language sql security definer set search_path = public as $$
+language sql security definer set search_path = public, extensions as $$
   select event, data, created_at from public.activity
   where person_id = p_person_id
   order by created_at desc
@@ -179,18 +179,18 @@ create index if not exists strikes_person_active_idx
 alter table public.strikes enable row level security;
 
 create or replace function public.add_strike(p_person_id uuid, p_reason text)
-returns void language sql security definer set search_path = public as $$
+returns void language sql security definer set search_path = public, extensions as $$
   insert into public.strikes (person_id, reason) values (p_person_id, p_reason);
 $$;
 
 create or replace function public.clear_strikes(p_person_id uuid)
-returns void language sql security definer set search_path = public as $$
+returns void language sql security definer set search_path = public, extensions as $$
   update public.strikes set cleared_at = now()
   where person_id = p_person_id and cleared_at is null;
 $$;
 
 create or replace function public.active_strikes(p_person_id uuid)
-returns int language sql security definer set search_path = public as $$
+returns int language sql security definer set search_path = public, extensions as $$
   select count(*)::int from public.strikes
   where person_id = p_person_id and cleared_at is null;
 $$;
