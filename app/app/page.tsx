@@ -10,7 +10,12 @@ export default async function AppPage() {
   const session = await auth();
   if (!session?.user?.email) redirect("/login");
 
-  const accountId = await accountIdForEmail(session.user.email);
+  let accountId: string | null = null;
+  try {
+    accountId = await accountIdForEmail(session.user.email);
+  } catch {
+    redirect("/login?error=service");
+  }
   if (!accountId) redirect("/login");
 
   const profile = await resolveActiveProfile(accountId);

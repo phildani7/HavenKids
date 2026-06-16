@@ -1,6 +1,6 @@
 "use client";
 /* =============================================================
-   HAVEN KIDS — Sidebar, TopBar, AngelFloat
+   FISHHAVEN — Sidebar, TopBar, AngelFloat
    Ported from design/project/screens-home.jsx (Sidebar, TopBar)
    and screens-features.jsx (AngelFloat)
    ============================================================= */
@@ -15,13 +15,15 @@ export function Sidebar({
   setRoute,
   userName,
   onSignOut,
+  isKid,
 }: {
   route: Route;
   setRoute: (r: Route) => void;
   userName: string;
   onSignOut: () => void | Promise<void>;
+  isKid?: boolean;
 }) {
-  const nav: Array<{ id: Route["page"]; label: string; icon: string }> = [
+  const allNav: Array<{ id: Route["page"]; label: string; icon: string }> = [
     { id: "home", label: "Home", icon: "🏡" },
     { id: "discover", label: "Discover", icon: "🧭" },
     { id: "doodle", label: "Group Doodle", icon: "🎨" },
@@ -31,6 +33,7 @@ export function Sidebar({
     { id: "profile", label: "My Profile", icon: "😇" },
     { id: "parents", label: "For Parents", icon: "👨‍👩‍👧" },
   ];
+  const nav = isKid ? allNav.filter((n) => n.id !== "parents") : allNav;
   const myCommunities = HAVEN_DATA.communities.slice(0, 5);
 
   return (
@@ -50,20 +53,7 @@ export function Sidebar({
         >
           😇
         </div>
-        <div>
-          <div style={{ fontFamily: "var(--font-display)", fontWeight: 900, fontSize: 22, lineHeight: 1 }}>Haven</div>
-          <div
-            style={{
-              fontSize: 11,
-              color: "var(--ink-mute)",
-              fontWeight: 800,
-              letterSpacing: ".1em",
-              textTransform: "uppercase",
-            }}
-          >
-            Kids
-          </div>
-        </div>
+        <div style={{ fontFamily: "var(--font-display)", fontWeight: 900, fontSize: 22, lineHeight: 1 }}>FishHaven</div>
       </div>
 
       <div className="stack" style={{ gap: 4 }}>

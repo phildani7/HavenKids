@@ -1,3 +1,4 @@
+import "server-only";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
 // Anonymous client — safe to use on the server for non-privileged reads.

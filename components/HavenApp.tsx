@@ -1,6 +1,6 @@
 "use client";
 /* =============================================================
-   HAVEN KIDS — Top-level client shell with route state.
+   FISHHAVEN — Top-level client shell with route state.
    Combines design/project/app.jsx + all ported screens.
    ============================================================= */
 
@@ -87,7 +87,7 @@ export function HavenApp({
 
   return (
     <div className="app">
-      <Sidebar route={route} setRoute={setRoute} userName={displayName} onSignOut={onSignOut} />
+      <Sidebar route={route} setRoute={setRoute} userName={displayName} onSignOut={onSignOut} isKid={isKid} />
       <main className="main">
         <TopBar user={user} strikes={strikes} />
         {route.page === "home" && <HomePage user={user} setRoute={setRoute} />}

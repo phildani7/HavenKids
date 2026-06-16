@@ -1,7 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { verifyAdminPin, setAdminPin, adminPinIsSet, createProfile, resolveActiveProfile, clearStrikes } from "@/lib/accounts";
+import { verifyAdminPin, setAdminPin, adminPinIsSet, createProfile, clearStrikes } from "@/lib/accounts";
 import { setAdminUnlock } from "@/lib/session";
 import { requireActiveAdult, requireAdminUnlock } from "@/lib/guards";
 import { isLocked, recordFailure, resetFailures } from "@/lib/rate-limit";

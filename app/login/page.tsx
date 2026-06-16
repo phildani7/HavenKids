@@ -42,6 +42,15 @@ export default async function LoginPage({
             : "Sign in with Google or get a magic link by email."}
         </p>
 
+        {!hasGoogle && !hasResend && (
+          <div className="card" style={{ marginTop: 16, padding: "12px 14px", textAlign: "left" }}>
+            <div style={{ fontWeight: 900, fontSize: 14 }}>No sign-in method configured</div>
+            <div className="tiny muted" style={{ marginTop: 4 }}>
+              Set a Google OAuth or Resend (email) provider in the environment to enable login.
+            </div>
+          </div>
+        )}
+
         {sent && (
           <div
             className="card"

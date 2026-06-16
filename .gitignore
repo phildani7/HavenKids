@@ -12,5 +12,6 @@ design/
 bundle.gz
 bundle.tar
 .turbo/
+tsconfig.tsbuildinfo
 
 .vercel
