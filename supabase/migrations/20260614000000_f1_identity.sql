@@ -43,7 +43,7 @@ begin
   on conflict (owner_email) do update set owner_email = excluded.owner_email
   returning id into a_id;
 
-  select id into p_id from public.people where account_id = a_id and is_owner;
+  select id into p_id from public.people where people.account_id = a_id and is_owner;
   if p_id is null then
     insert into public.people (account_id, kind, is_owner, display_name, avatar)
     values (a_id, 'adult', true, split_part(p_email,'@',1), '🙂')
