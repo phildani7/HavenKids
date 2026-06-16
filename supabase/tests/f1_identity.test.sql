@@ -1,5 +1,5 @@
 begin;
-select plan(24);
+select plan(28);
 
 -- tables exist
 select has_table('public', 'accounts', 'accounts table exists');
@@ -41,6 +41,13 @@ select is(
     where a.owner_email='owner@example.com' and p.is_owner),
   1, 'create_account created one owner profile');
 
+-- a child cannot be created before an admin pin is set
+select throws_ok(
+  $$ select public.create_profile(
+       (select id from public.accounts where owner_email='owner@example.com'),
+       'child', 'TooEarly', '🐣', null) $$,
+  null, null, 'child profile rejected before admin pin set');
+
 -- set admin pin then verify
 select lives_ok(
   $$ select public.set_admin_pin(
@@ -73,12 +80,29 @@ select ok(
   public.verify_profile_pin(
     (select id from public.people where display_name='Sam'), '4321'),
   'correct profile pin verifies');
+select ok(
+  not public.verify_profile_pin(
+    (select id from public.people where display_name='Sam'), '0000'),
+  'wrong profile pin rejected');
 
 -- list_profiles returns rows without hashes
 select is(
   (select count(*)::int from public.list_profiles(
      (select id from public.accounts where owner_email='owner@example.com'))),
   2, 'list_profiles returns owner + child');
+-- list_profiles exposes only a boolean has_pin, never the hash
+select is(
+  (select has_pin from public.list_profiles(
+     (select id from public.accounts where owner_email='owner@example.com'))
+     where display_name='Sam'),
+  true, 'list_profiles exposes has_pin boolean (no hash leak)');
+
+-- an adult profile needs no admin pin (run after the count assertion above)
+select lives_ok(
+  $$ select public.create_profile(
+       (select id from public.accounts where owner_email='owner@example.com'),
+       'adult', 'Grandma', '👵', null) $$,
+  'create_profile adult runs without admin pin');
 
 -- activity re-keyed to person_id
 select has_table('public', 'activity', 'activity table exists');

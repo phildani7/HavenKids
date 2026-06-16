@@ -18,7 +18,6 @@ create table if not exists public.people (
   display_name text not null,
   avatar       text not null,
   pin_hash     text,
-  birth_year   int,
   created_at   timestamptz not null default now()
 );
 
@@ -52,6 +51,14 @@ begin
 
   account_id := a_id; owner_person_id := p_id; return next;
 end $$;
+
+-- Read-only account lookup for the hot path (every request resolves the account).
+-- create_account is an upsert (a write); use this for reads so a flood of
+-- authenticated requests does not become a flood of writes.
+create or replace function public.account_id_for_email(p_email text)
+returns uuid language sql security definer set search_path = public, extensions as $$
+  select id from public.accounts where owner_email = p_email;
+$$;
 
 create or replace function public.set_admin_pin(p_account_id uuid, p_pin text)
 returns void language sql security definer set search_path = public, extensions as $$
@@ -133,6 +140,9 @@ alter table public.activity
 alter table public.activity
   add constraint activity_person_id_fkey
   foreign key (person_id) references public.people(id) on delete cascade;
+-- guard: a legacy/partial state could leave NULL person_id rows, which would
+-- abort the SET NOT NULL below. We have no email->person mapping, so drop them.
+delete from public.activity where person_id is null;
 alter table public.activity alter column person_id set not null;
 
 drop index if exists public.activity_email_created_idx;
@@ -206,11 +216,7 @@ grant  execute on all functions in schema public to service_role;
 -- Resend email magic-link provider). Mirrored from schema.sql.
 -- ============================================================
 create schema if not exists next_auth;
-
 grant usage on schema next_auth to service_role;
-grant all on all tables    in schema next_auth to service_role;
-grant all on all sequences in schema next_auth to service_role;
-grant all on all functions in schema next_auth to service_role;
 
 create table if not exists next_auth.users (
   id            uuid primary key default gen_random_uuid(),
@@ -251,3 +257,10 @@ create table if not exists next_auth.verification_tokens (
   expires    timestamptz not null,
   primary key (identifier, token)
 );
+
+-- Grants AFTER the tables exist: `grant on all tables` only covers tables that
+-- exist at execution time, so these must follow the CREATE TABLE statements
+-- (otherwise the Auth.js adapter / Resend magic-link login breaks on first deploy).
+grant all on all tables    in schema next_auth to service_role;
+grant all on all sequences in schema next_auth to service_role;
+grant all on all functions in schema next_auth to service_role;
