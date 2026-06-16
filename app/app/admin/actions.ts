@@ -1,27 +1,20 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { auth } from "@/auth";
-import { accountIdForEmail, verifyAdminPin, setAdminPin, createProfile } from "@/lib/accounts";
+import { verifyAdminPin, setAdminPin, adminPinIsSet, createProfile, resolveActiveProfile, clearStrikes } from "@/lib/accounts";
 import { setAdminUnlock } from "@/lib/session";
+import { requireActiveAdult, requireAdminUnlock } from "@/lib/guards";
 import { isLocked, recordFailure, resetFailures } from "@/lib/rate-limit";
 
-async function requireAccount(): Promise<string> {
-  const session = await auth();
-  const email = session?.user?.email;
-  if (!email) redirect("/login");
-  const id = await accountIdForEmail(email);
-  if (!id) redirect("/login");
-  return id;
-}
+const PIN_RE = /^\d{4,}$/; // at least 4 digits, numeric
 
 export async function unlockAdmin(formData: FormData) {
-  const accountId = await requireAccount();
+  const { accountId } = await requireActiveAdult();
   const pin = String(formData.get("pin") || "");
+  if (!pin) redirect("/app/admin"); // empty submit: just show the form, no failed attempt
   const lockKey = `admin:${accountId}`;
   if (isLocked(lockKey)) redirect("/app/admin?error=locked");
-  const ok = await verifyAdminPin(accountId, pin);
-  if (!ok) {
+  if (!(await verifyAdminPin(accountId, pin))) {
     recordFailure(lockKey, 5, 60_000);
     redirect("/app/admin?error=badpin");
   }
@@ -31,19 +24,36 @@ export async function unlockAdmin(formData: FormData) {
 }
 
 export async function setupAdminPin(formData: FormData) {
-  const accountId = await requireAccount();
+  const { accountId } = await requireActiveAdult();
+  // Setup is first-time only. Resetting an existing PIN must NOT be possible
+  // without the current PIN (otherwise a child could overwrite it) — block it.
+  if (await adminPinIsSet(accountId)) redirect("/app/admin?error=already");
   const pin = String(formData.get("pin") || "").trim();
-  if (pin.length < 4) redirect("/app/admin?error=shortpin");
+  if (!PIN_RE.test(pin)) redirect("/app/admin?error=shortpin");
   await setAdminPin(accountId, pin);
   await setAdminUnlock(accountId);
   redirect("/app/admin");
 }
 
 export async function addChildProfile(formData: FormData) {
-  const accountId = await requireAccount();
+  const { accountId } = await requireActiveAdult();
+  await requireAdminUnlock(accountId);
   const name = String(formData.get("name") || "").trim().slice(0, 40) || "Kiddo";
   const avatar = String(formData.get("avatar") || "🦄");
-  const pin = String(formData.get("pin") || "").trim() || null;
+  const rawPin = String(formData.get("pin") || "").trim();
+  const pin = rawPin === "" ? null : rawPin;
+  if (pin !== null && !PIN_RE.test(pin)) redirect("/app/admin?error=shortpin");
   await createProfile(accountId, "child", name, avatar, pin);
+  redirect("/app/admin");
+}
+
+export async function clearChildStrikes(formData: FormData) {
+  const { accountId } = await requireActiveAdult();
+  await requireAdminUnlock(accountId);
+  const personId = String(formData.get("personId") || "");
+  // Verify the target belongs to this account before clearing.
+  const profiles = await import("@/lib/accounts").then((m) => m.listProfiles(accountId));
+  if (!profiles.some((p) => p.id === personId)) redirect("/app/admin");
+  await clearStrikes(personId);
   redirect("/app/admin");
 }

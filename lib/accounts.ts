@@ -17,7 +17,12 @@ export async function ensureAccount(email: string): Promise<string | null> {
 }
 
 export async function accountIdForEmail(email: string): Promise<string | null> {
-  // create_account is idempotent (on conflict), so reuse it as a getter.
+  const sb = getSupabaseAdmin();
+  if (!sb) return null;
+  const { data, error } = await sb.rpc("account_id_for_email", { p_email: email });
+  if (error) throw new Error(error.message);
+  if (data) return data as string;
+  // Account not provisioned yet (e.g. signIn callback hiccup) — create it once.
   return ensureAccount(email);
 }
 

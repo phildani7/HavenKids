@@ -1,7 +1,7 @@
 "use server";
 
 import { auth } from "@/auth";
-import { accountIdForEmail, resolveActiveProfile, addStrike, clearStrikes } from "@/lib/accounts";
+import { accountIdForEmail, resolveActiveProfile, addStrike } from "@/lib/accounts";
 
 async function activePersonId(): Promise<string | null> {
   const session = await auth();
@@ -16,10 +16,4 @@ export async function recordStrikeAction(reason: string) {
   const personId = await activePersonId();
   if (!personId) return;
   await addStrike(personId, (reason || "unkind words").slice(0, 200));
-}
-
-export async function clearStrikesAction() {
-  const personId = await activePersonId();
-  if (!personId) return;
-  await clearStrikes(personId);
 }

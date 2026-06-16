@@ -58,10 +58,7 @@ export function HavenApp({
     setStrikes((s) => Math.min(3, s + 1)); // 3 strikes = account paused (app premise)
     void import("@/app/app/strikes/actions").then((m) => m.recordStrikeAction(reason));
   };
-  const resetStrikes = () => {
-    setStrikes(0);
-    void import("@/app/app/strikes/actions").then((m) => m.clearStrikesAction());
-  };
+  const resetStrikes = () => setStrikes(0);
   const [theme, setTheme] = useState<Theme>("sunshine");
   const [avatar, setAvatar] = useState(profile.avatar || "🦄");
 

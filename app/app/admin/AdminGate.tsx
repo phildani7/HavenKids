@@ -14,7 +14,8 @@ export function AdminGate({ needsSetup, error }: { needsSetup: boolean; error: s
         </p>
         {error && <p className="tiny" style={{ color: "#E85C47", marginTop: 8 }}>
           {error === "badpin" ? "Wrong PIN." : error === "locked" ? "Too many tries — wait a minute."
-            : error === "shortpin" ? "PIN must be at least 4 digits." : "Try again."}
+            : error === "shortpin" ? "PIN must be at least 4 digits."
+            : error === "already" ? "A PIN is already set — enter it to unlock." : "Try again."}
         </p>}
         <form action={action} style={{ marginTop: 16 }}>
           <input className="login-input" name="pin" inputMode="numeric" autoFocus placeholder="PIN" />
