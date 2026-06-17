@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { auth, signOut } from "@/auth";
-import { accountIdForEmail, resolveActiveProfile, activeStrikes } from "@/lib/accounts";
+import { accountIdForEmail, resolveActiveProfile, activeStrikes, childIsActive } from "@/lib/accounts";
 import { clearAllProfileCookies } from "@/lib/session";
 import { HavenApp } from "@/components/HavenApp";
 
@@ -20,6 +20,8 @@ export default async function AppPage() {
 
   const profile = await resolveActiveProfile(accountId);
   if (!profile) redirect("/app/profiles");
+
+  if (profile.kind === "child" && !(await childIsActive(profile.id))) redirect("/app/profiles");
 
   const initialStrikes = await activeStrikes(profile.id);
 

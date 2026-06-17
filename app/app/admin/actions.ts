@@ -1,10 +1,12 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { verifyAdminPin, setAdminPin, adminPinIsSet, createProfile, clearStrikes } from "@/lib/accounts";
+import { verifyAdminPin, setAdminPin, adminPinIsSet, createProfile, clearStrikes, revokeConsent, deleteChildData, recordConsent, listProfiles } from "@/lib/accounts";
 import { setAdminUnlock } from "@/lib/session";
 import { requireActiveAdult, requireAdminUnlock } from "@/lib/guards";
 import { isLocked, recordFailure, resetFailures } from "@/lib/rate-limit";
+
+const NOTICE_VERSION = "2026-06-16";
 
 const PIN_RE = /^\d{4,}$/; // at least 4 digits, numeric
 
@@ -38,12 +40,38 @@ export async function setupAdminPin(formData: FormData) {
 export async function addChildProfile(formData: FormData) {
   const { accountId } = await requireActiveAdult();
   await requireAdminUnlock(accountId);
+  const attested = String(formData.get("attest") || "") === "on";
+  if (!attested) redirect("/app/admin?error=attest");
   const name = String(formData.get("name") || "").trim().slice(0, 40) || "Kiddo";
   const avatar = String(formData.get("avatar") || "🦄");
   const rawPin = String(formData.get("pin") || "").trim();
   const pin = rawPin === "" ? null : rawPin;
-  if (pin !== null && !PIN_RE.test(pin)) redirect("/app/admin?error=shortpin");
-  await createProfile(accountId, "child", name, avatar, pin);
+  if (pin !== null && !/^\d{4,}$/.test(pin)) redirect("/app/admin?error=shortpin");
+  const ageBand = String(formData.get("age_band") || "13_17");
+  const { headers } = await import("next/headers");
+  const country = (await headers()).get("x-vercel-ip-country");
+  const personId = await createProfile(accountId, "child", name, avatar, pin, ageBand);
+  await recordConsent(accountId, personId, "service_v1", "parent_attestation_v1", NOTICE_VERSION, country);
+  redirect("/app/admin");
+}
+
+export async function revokeChildConsent(formData: FormData) {
+  const { accountId } = await requireActiveAdult();
+  await requireAdminUnlock(accountId);
+  const personId = String(formData.get("personId") || "");
+  const profiles = await listProfiles(accountId);
+  if (!profiles.some((p) => p.id === personId)) redirect("/app/admin");
+  await revokeConsent(accountId, personId);
+  redirect("/app/admin");
+}
+
+export async function deleteChild(formData: FormData) {
+  const { accountId } = await requireActiveAdult();
+  await requireAdminUnlock(accountId);
+  const personId = String(formData.get("personId") || "");
+  const profiles = await listProfiles(accountId);
+  if (!profiles.some((p) => p.id === personId)) redirect("/app/admin");
+  await deleteChildData(accountId, personId);
   redirect("/app/admin");
 }
 

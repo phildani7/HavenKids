@@ -5,6 +5,8 @@ import { getActiveProfile } from "@/lib/session";
 export type Profile = {
   id: string; kind: "adult" | "child"; is_owner: boolean;
   display_name: string; avatar: string; has_pin: boolean;
+  age_band: "under_13" | "13_17" | "adult";
+  is_active: boolean;
 };
 
 /** Ensure an account+owner profile exists for this email; returns account id. */
@@ -67,11 +69,63 @@ export async function verifyAdminPin(accountId: string, pin: string): Promise<bo
 }
 
 export async function createProfile(
-  accountId: string, kind: "adult" | "child", name: string, avatar: string, pin: string | null) {
+  accountId: string, kind: "adult" | "child", name: string, avatar: string, pin: string | null,
+  ageBand: string = "adult"): Promise<string> {
   const sb = getSupabaseAdmin();
   if (!sb) throw new Error("Supabase not configured");
-  const { error } = await sb.rpc("create_profile", {
+  const { data, error } = await sb.rpc("create_profile", {
     p_account_id: accountId, p_kind: kind, p_name: name, p_avatar: avatar, p_pin: pin,
+    p_age_band: ageBand,
+  });
+  if (error) throw new Error(error.message);
+  return data as string;
+}
+
+export async function recordConsent(
+  accountId: string, personId: string, scope: string, method: string,
+  noticeVersion: string, country: string | null): Promise<string | null> {
+  const sb = getSupabaseAdmin();
+  if (!sb) return null;
+  const { data, error } = await sb.rpc("record_consent", {
+    p_account_id: accountId, p_person_id: personId, p_scope: scope,
+    p_method: method, p_notice_version: noticeVersion, p_country: country,
+  });
+  if (error) throw new Error(error.message);
+  return data as string | null;
+}
+
+export async function revokeConsent(accountId: string, personId: string): Promise<void> {
+  const sb = getSupabaseAdmin();
+  if (!sb) return;
+  const { error } = await sb.rpc("revoke_consent", {
+    p_account_id: accountId, p_person_id: personId,
+  });
+  if (error) throw new Error(error.message);
+}
+
+export async function childIsActive(personId: string): Promise<boolean> {
+  const sb = getSupabaseAdmin();
+  if (!sb) return false;
+  const { data, error } = await sb.rpc("child_is_active", { p_person_id: personId });
+  if (error) throw new Error(error.message);
+  return Boolean(data);
+}
+
+export async function exportChildData(accountId: string, personId: string): Promise<unknown> {
+  const sb = getSupabaseAdmin();
+  if (!sb) return null;
+  const { data, error } = await sb.rpc("export_child_data", {
+    p_account_id: accountId, p_person_id: personId,
+  });
+  if (error) throw new Error(error.message);
+  return data;
+}
+
+export async function deleteChildData(accountId: string, personId: string): Promise<void> {
+  const sb = getSupabaseAdmin();
+  if (!sb) return;
+  const { error } = await sb.rpc("delete_child_data", {
+    p_account_id: accountId, p_person_id: personId,
   });
   if (error) throw new Error(error.message);
 }

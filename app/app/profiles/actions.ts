@@ -15,6 +15,8 @@ export async function pickProfile(formData: FormData) {
   const profile = profiles.find((p) => p.id === personId);
   if (!profile) redirect("/app/profiles?error=notfound");
 
+  if (profile.kind === "child" && !profile.is_active) redirect("/app/profiles?error=needsconsent");
+
   if (profile.has_pin) {
     const lockKey = `pin:${personId}`;
     if (isLocked(lockKey)) redirect("/app/profiles?error=locked");
