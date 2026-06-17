@@ -3,7 +3,8 @@ import { auth } from "@/auth";
 import { accountIdForEmail, listProfiles, adminPinIsSet, resolveActiveProfile, accountHasChildren, activeStrikes } from "@/lib/accounts";
 import { getAdminUnlock } from "@/lib/session";
 import { AdminGate } from "./AdminGate";
-import { addChildProfile, clearChildStrikes, revokeChildConsent, deleteChild } from "./actions";
+import { DeleteChildForm } from "./DeleteChildForm";
+import { addChildProfile, clearChildStrikes, revokeChildConsent } from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -74,11 +75,7 @@ export default async function AdminPage({
                   <button className="btn btn-ghost" type="submit">Revoke consent</button>
                 </form>
                 <a className="btn btn-ghost" href={`/app/admin/export?personId=${p.id}`}>Export data</a>
-                <form action={deleteChild} style={{ display: "inline" }}
-                  onSubmit={(e) => { if (!confirm("Permanently delete all data for this child?")) e.preventDefault(); }}>
-                  <input type="hidden" name="personId" value={p.id} />
-                  <button className="btn btn-ghost" type="submit" style={{ color: "#E85C47" }}>Delete</button>
-                </form>
+                <DeleteChildForm personId={p.id} />
               </span>
             )}
           </li>
