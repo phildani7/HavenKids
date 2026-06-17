@@ -45,6 +45,25 @@ day-one foundations.** Supabase Postgres carries the entire foundation:
 Each graduation is a measured swap behind a stable interface — never a premature
 day-one dependency.
 
+## Safety & Compliance gates (Tier 1 — HARD GATES)
+
+For a kids platform these are legal requirements, not features. See
+`docs/superpowers/risks-and-open-questions.md`. **These gate the sub-projects below:**
+
+- **SAFE-0 — Legal & policy foundation** (precedes engineering; needs counsel):
+  jurisdiction(s), under-13 vs 13+ scope, COPPA/AADC obligations, NCMEC registration,
+  Terms + Privacy (kid + parent versions), data retention/deletion. Output is a policy
+  spec the SAFE sub-projects implement against.
+- **SAFE-1 — Age assurance & verifiable parental consent** → **gates any kid-facing
+  launch / under-13 usage.**
+- **SAFE-2 — Abuse detection & mandatory reporting** (CSAM scanning + NCMEC pipeline +
+  human moderation queue) → **gates C4 (user-generated content + uploads).**
+- **SAFE-3 — Contact & DM safety** (parent-approved + monitored + grooming detection)
+  → **gates S1 (connections/DMs).**
+
+We build the mechanisms; **legal counsel determines the policies.** No kid-facing
+feature ships past its SAFE gate.
+
 ## Sub-projects
 
 ### Foundation tier
