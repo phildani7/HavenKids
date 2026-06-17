@@ -9,19 +9,25 @@
 ## Decisions (locked)
 - **Kid model:** parent-managed profiles only — children are profiles under a parent's
   account, no independent kid logins. (This *is* the F1 model — a strong start.)
-- **Jurisdiction:** global from launch → design to the **strictest common denominator**.
+- **Jurisdiction:** **India + US + rest-of-world, EXCLUDING UK & EU** (geo-restricted out).
+  Design to the strictest of the *included* regimes — **India DPDP + US COPPA**.
 - **Counsel:** proceed against published frameworks now; flag everything for later review.
+  (Recommended: one counsel review of SAFE-0 before real children onboard.)
 
-## Strictest-common-denominator posture (what "global" forces)
+## Strictest-common-denominator posture (India + US)
 | Source | What it demands of us |
 |---|---|
-| **COPPA (US)** | Verifiable parental consent before collecting a child's personal info; data minimization; no behavioral ads to kids; parental access/deletion; NCMEC reporting. **[LEGAL]** whether a *parent-created* profile still requires formal VPC, and which VPC method qualifies. |
-| **UK Age-Appropriate Design Code** | High-privacy **defaults** for under-18s; data minimization; a documented **DPIA** (child-risk assessment); no nudge toward weaker privacy; geolocation off by default; transparency in kid-readable language. |
-| **GDPR-K (EU)** | Lawful basis + parental consent under the age threshold (**13–16, varies by country** — **[LEGAL]**); right to access/export/erase; purpose limitation; possibly an EU representative/DPO. |
+| **India DPDP Act 2023** | A **child = under 18**. Verifiable consent of a **parent/lawful guardian before processing any under-18's data**; **no tracking, behavioral monitoring, or targeted advertising to children**; no processing detrimental to a child's well-being; data minimization, purpose limitation, security safeguards; breach notification to the Data Protection Board + affected; rights to access/correct/erase + grievance redressal; plain-language notice **[LEGAL: multilingual-notice expectation]**. **[LEGAL]** final DPDP Rules still being notified. |
+| **US COPPA + NCMEC** | Verifiable parental consent before collecting under-13 personal info; data minimization; no behavioral ads to kids; parental access/deletion/revoke; **mandatory NCMEC CyberTipline reporting** of CSAM. **[LEGAL]** which VPC method qualifies; whether a *parent-created* profile streamlines it. |
+| **US state (e.g. California)** | CPRA under-16 opt-in for sale/share; design-for-kids expectations. We don't sell data — keep it that way. |
 
-**Net design rules (apply to every child profile):** minimal data only; private by default;
-no discovery/profiling/behavioral ads; geo-aware consent threshold (default strictest);
-parent can view/export/delete; consent recorded before activation; everything logged.
+**Headline rule (because India's bar is under-18):** treat **every under-18 profile** as
+requiring parental consent — one rule for all minors, which fits parent-managed perfectly.
+
+**Net design rules (every minor / child profile):** minimal data only; private by default;
+**no tracking / profiling / behavioral ads, ever**; parental consent recorded before
+activation; parent can view/export/correct/delete; grievance contact; everything logged;
+**UK + EU geo-restricted at signup and access.**
 
 ## Sub-projects
 
