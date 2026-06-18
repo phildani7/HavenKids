@@ -502,3 +502,8 @@ create table if not exists next_auth.verification_tokens (
 grant all on all tables    in schema next_auth to service_role;
 grant all on all sequences in schema next_auth to service_role;
 grant all on all functions in schema next_auth to service_role;
+
+-- C4 media: private Storage bucket (served only via signed URLs once approved)
+insert into storage.buckets (id, name, public)
+values ('media', 'media', false)
+on conflict (id) do nothing;

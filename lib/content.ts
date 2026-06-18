@@ -91,3 +91,71 @@ export async function hidePost(accountId: string, postId: string): Promise<void>
   });
   if (error) throw new Error(error.message);
 }
+
+// ---------------------------------------------------------------------------
+// C4 Media wrappers
+// ---------------------------------------------------------------------------
+
+/** Record a newly uploaded file as 'pending'. Throws if the uploader is not permitted. */
+export async function createMedia(
+  accountId: string,
+  ownerPersonId: string,
+  postId: string | null,
+  path: string,
+  mime: string | null,
+  bytes: number | null,
+  isMinor: boolean,
+): Promise<string> {
+  const sb = getSupabaseAdmin();
+  if (!sb) throw new Error("Supabase not configured");
+  const { data, error } = await sb.rpc("create_media", {
+    p_account_id: accountId,
+    p_owner_person_id: ownerPersonId,
+    p_post_id: postId ?? null,
+    p_path: path,
+    p_mime: mime ?? null,
+    p_bytes: bytes ?? null,
+    p_is_minor: isMinor,
+  });
+  if (error) throw new Error(error.message);
+  return data as string;
+}
+
+export type PendingMediaRow = {
+  id: string;
+  owner_person_id: string;
+  path: string;
+  mime: string | null;
+  is_minor: boolean;
+  created_at: string;
+};
+
+/** List all pending (quarantined) media for an account. Used by the moderation queue (Batch E). */
+export async function listPendingMedia(accountId: string): Promise<PendingMediaRow[]> {
+  const sb = getSupabaseAdmin();
+  if (!sb) return [];
+  const { data, error } = await sb.rpc("list_pending_media", {
+    p_account_id: accountId,
+  });
+  if (error) throw new Error(error.message);
+  return (data ?? []) as PendingMediaRow[];
+}
+
+/** Approve or reject a media item (account-scoped guardian review; platform-wide review arrives in SAFE-2). */
+export async function setMediaStatus(
+  accountId: string,
+  mediaId: string,
+  status: "pending" | "approved" | "rejected",
+): Promise<void> {
+  const sb = getSupabaseAdmin();
+  if (!sb) throw new Error("Supabase not configured");
+  const { error } = await sb.rpc("set_media_status", {
+    p_account_id: accountId,
+    p_media_id: mediaId,
+    p_status: status,
+  });
+  if (error) throw new Error(error.message);
+}
+
+/** Signed download URL for an approved media item. Never call this for pending/rejected media. */
+export { signedDownload as mediaSignedUrl } from "@/lib/media";
