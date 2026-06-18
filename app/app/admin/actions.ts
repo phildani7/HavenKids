@@ -5,6 +5,7 @@ import { verifyAdminPin, setAdminPin, adminPinIsSet, createProfile, clearStrikes
 import { setAdminUnlock } from "@/lib/session";
 import { requireActiveAdult, requireAdminUnlock } from "@/lib/guards";
 import { isLocked, recordFailure, resetFailures } from "@/lib/rate-limit";
+import { setMediaStatus } from "@/lib/content";
 
 const NOTICE_VERSION = "2026-06-16";
 
@@ -72,6 +73,25 @@ export async function deleteChild(formData: FormData) {
   const profiles = await listProfiles(accountId);
   if (!profiles.some((p) => p.id === personId)) redirect("/app/admin");
   await deleteChildData(accountId, personId);
+  redirect("/app/admin");
+}
+
+export async function approveMedia(formData: FormData) {
+  const { accountId } = await requireActiveAdult();
+  await requireAdminUnlock(accountId);
+  const mediaId = String(formData.get("mediaId") || "");
+  if (!mediaId) return;
+  // setMediaStatus is account-scoped so the RPC enforces ownership
+  await setMediaStatus(accountId, mediaId, "approved");
+  redirect("/app/admin");
+}
+
+export async function rejectMedia(formData: FormData) {
+  const { accountId } = await requireActiveAdult();
+  await requireAdminUnlock(accountId);
+  const mediaId = String(formData.get("mediaId") || "");
+  if (!mediaId) return;
+  await setMediaStatus(accountId, mediaId, "rejected");
   redirect("/app/admin");
 }
 

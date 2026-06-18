@@ -4,7 +4,8 @@ import { accountIdForEmail, listProfiles, adminPinIsSet, resolveActiveProfile, a
 import { getAdminUnlock } from "@/lib/session";
 import { AdminGate } from "./AdminGate";
 import { DeleteChildForm } from "./DeleteChildForm";
-import { addChildProfile, clearChildStrikes, revokeChildConsent } from "./actions";
+import { addChildProfile, clearChildStrikes, revokeChildConsent, approveMedia, rejectMedia } from "./actions";
+import { listPendingMedia, mediaSignedUrl } from "@/lib/content";
 
 export const dynamic = "force-dynamic";
 
@@ -39,8 +40,13 @@ export default async function AdminPage({
     null;
 
   const baseProfiles = await listProfiles(accountId);
-  const profiles = await Promise.all(
-    baseProfiles.map(async (p) => ({ ...p, strikes: await activeStrikes(p.id) })),
+  const [profiles, pendingMedia] = await Promise.all([
+    Promise.all(baseProfiles.map(async (p) => ({ ...p, strikes: await activeStrikes(p.id) }))),
+    listPendingMedia(accountId),
+  ]);
+  // Fetch signed thumbnail URLs for pending media (best-effort; null if unconfigured)
+  const pendingWithUrls = await Promise.all(
+    pendingMedia.map(async (m) => ({ ...m, thumbUrl: await mediaSignedUrl(m.path) })),
   );
   return (
     <div style={{ padding: 28, maxWidth: 900, margin: "0 auto" }}>
@@ -117,6 +123,76 @@ export default async function AdminPage({
           <button className="btn btn-coral" type="submit">Add child</button>
         </div>
       </form>
+      <h2 style={{ marginTop: 32 }}>Pending media</h2>
+      <p className="tiny muted" style={{ marginBottom: 12 }}>
+        Images uploaded by family members wait here until you approve or reject them. Only approved images become visible.
+      </p>
+      {pendingWithUrls.length === 0 ? (
+        <p className="tiny muted">No pending media — you&apos;re all caught up!</p>
+      ) : (
+        <ul style={{ listStyle: "none", padding: 0 }}>
+          {pendingWithUrls.map((m) => (
+            <li
+              key={m.id}
+              style={{
+                padding: "12px 0",
+                borderBottom: "1px solid #eee",
+                display: "flex",
+                gap: 16,
+                alignItems: "center",
+                flexWrap: "wrap",
+              }}
+            >
+              {m.thumbUrl ? (
+                <a href={m.thumbUrl} target="_blank" rel="noopener noreferrer">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={m.thumbUrl}
+                    alt="pending media"
+                    style={{ width: 72, height: 72, objectFit: "cover", borderRadius: 10, border: "2px solid #eee" }}
+                  />
+                </a>
+              ) : (
+                <div
+                  style={{
+                    width: 72,
+                    height: 72,
+                    borderRadius: 10,
+                    border: "2px solid #eee",
+                    display: "grid",
+                    placeItems: "center",
+                    fontSize: 28,
+                    background: "#f9f6ef",
+                  }}
+                >
+                  🖼
+                </div>
+              )}
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontWeight: 700, fontSize: 13 }}>
+                  {m.is_minor ? "👶 Minor upload" : "👤 Adult upload"}
+                </div>
+                <div className="tiny muted" style={{ marginTop: 2, wordBreak: "break-all" }}>{m.path}</div>
+                <div className="tiny muted">{m.mime ?? "unknown type"} · {new Date(m.created_at).toLocaleString()}</div>
+              </div>
+              <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
+                <form action={approveMedia} style={{ display: "inline" }}>
+                  <input type="hidden" name="mediaId" value={m.id} />
+                  <button className="btn btn-ghost" type="submit" style={{ color: "#2a9d8f", fontWeight: 800 }}>
+                    ✓ Approve
+                  </button>
+                </form>
+                <form action={rejectMedia} style={{ display: "inline" }}>
+                  <input type="hidden" name="mediaId" value={m.id} />
+                  <button className="btn btn-ghost" type="submit" style={{ color: "#E85C47", fontWeight: 800 }}>
+                    ✕ Reject
+                  </button>
+                </form>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
       <p className="tiny muted" style={{ marginTop: 24 }}>
         <a href="/app/profiles?choose=1">← Back to profiles</a>
       </p>

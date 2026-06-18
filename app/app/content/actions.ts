@@ -3,7 +3,7 @@
 import { auth } from "@/auth";
 import { accountIdForEmail, resolveActiveProfile, addStrike } from "@/lib/accounts";
 import { moderateText } from "@/lib/moderation/text";
-import { createPost, addComment } from "@/lib/content";
+import { createPost, addComment, listPosts, listComments, type FeedPost, type FeedComment } from "@/lib/content";
 
 async function activeContext(): Promise<{ accountId: string; profile: Awaited<ReturnType<typeof resolveActiveProfile>> & object } | null> {
   const session = await auth();
@@ -14,6 +14,22 @@ async function activeContext(): Promise<{ accountId: string; profile: Awaited<Re
   const profile = await resolveActiveProfile(accountId);
   if (!profile) return null;
   return { accountId, profile };
+}
+
+export async function listPostsAction(communityId: string): Promise<FeedPost[]> {
+  try {
+    return await listPosts(communityId);
+  } catch {
+    return [];
+  }
+}
+
+export async function listCommentsAction(postId: string): Promise<FeedComment[]> {
+  try {
+    return await listComments(postId);
+  } catch {
+    return [];
+  }
 }
 
 export async function createPostAction(
