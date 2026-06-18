@@ -2,15 +2,14 @@
 
 import { auth } from "@/auth";
 import { accountIdForEmail, resolveActiveProfile, addStrike } from "@/lib/accounts";
+import { moderateText } from "@/lib/moderation/text";
 
 // Server-authoritative moderation. Detection AND strike recording happen here,
 // not in the browser, so a tampered client cannot fabricate or evade strikes.
-const FLAGS = ["dumb", "stupid", "hate", "shut up"];
 
 export async function moderateMessage(text: string): Promise<{ flagged: boolean; word?: string }> {
-  const low = (text || "").toLowerCase();
-  const word = FLAGS.find((f) => low.includes(f));
-  if (!word) return { flagged: false };
+  const { flagged, word } = moderateText(text);
+  if (!flagged) return { flagged: false };
 
   // Record the strike against the active profile, derived from the signed
   // session/cookie (never client input).
