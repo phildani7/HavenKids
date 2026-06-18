@@ -72,6 +72,10 @@ export async function recordUpload(
   const postId = postIdRaw && postIdRaw.length > 0 ? postIdRaw : null;
 
   if (!path) return { ok: false, error: "missing_path" };
+  // Defense-in-depth: the path must be within this profile's own upload prefix
+  // (requestUpload builds `${accountId}/${profile.id}/...`), so a client can't
+  // record a media row pointing at another account's object.
+  if (!path.startsWith(`${accountId}/${profile.id}/`)) return { ok: false, error: "bad_path" };
 
   const isMinor = profile.kind === "child";
 
