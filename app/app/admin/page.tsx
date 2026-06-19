@@ -5,7 +5,7 @@ import { getAdminUnlock } from "@/lib/session";
 import { AdminGate } from "./AdminGate";
 import { DeleteChildForm } from "./DeleteChildForm";
 import { addChildProfile, clearChildStrikes, revokeChildConsent, approveMedia, rejectMedia } from "./actions";
-import { listPendingMedia, mediaSignedUrl } from "@/lib/content";
+import { listPendingMedia, mediaSignedUrl, listIncidents } from "@/lib/content";
 
 export const dynamic = "force-dynamic";
 
@@ -40,9 +40,10 @@ export default async function AdminPage({
     null;
 
   const baseProfiles = await listProfiles(accountId);
-  const [profiles, pendingMedia] = await Promise.all([
+  const [profiles, pendingMedia, incidents] = await Promise.all([
     Promise.all(baseProfiles.map(async (p) => ({ ...p, strikes: await activeStrikes(p.id) }))),
     listPendingMedia(accountId),
+    listIncidents(accountId),
   ]);
   // Fetch signed thumbnail URLs for pending media (best-effort; null if unconfigured)
   const pendingWithUrls = await Promise.all(
@@ -189,6 +190,37 @@ export default async function AdminPage({
                   </button>
                 </form>
               </div>
+            </li>
+          ))}
+        </ul>
+      )}
+      <h2 style={{ marginTop: 32 }}>Incidents</h2>
+      <p className="tiny muted" style={{ marginBottom: 12 }}>
+        Safety incidents flagged by the automated scan pipeline or manual review.
+      </p>
+      {incidents.length === 0 ? (
+        <p className="tiny muted">No incidents — all clear.</p>
+      ) : (
+        <ul style={{ listStyle: "none", padding: 0 }}>
+          {incidents.map((inc) => (
+            <li
+              key={inc.id}
+              style={{
+                padding: "10px 0",
+                borderBottom: "1px solid #eee",
+                fontSize: 13,
+              }}
+            >
+              <span style={{ fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.03em" }}>{inc.kind}</span>
+              {" — "}
+              <span style={{ color: inc.status === "open" ? "#E85C47" : "#888" }}>{inc.status}</span>
+              {" — "}
+              <span className="muted">{new Date(inc.created_at).toLocaleString()}</span>
+              {inc.media_id && (
+                <span className="muted" style={{ marginLeft: 8, wordBreak: "break-all" }}>
+                  (media: {inc.media_id})
+                </span>
+              )}
             </li>
           ))}
         </ul>

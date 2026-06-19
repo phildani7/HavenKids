@@ -159,3 +159,50 @@ export async function setMediaStatus(
 
 /** Signed download URL for an approved media item. Never call this for pending/rejected media. */
 export { signedDownload as mediaSignedUrl } from "@/lib/media";
+
+// ---------------------------------------------------------------------------
+// SAFE-2: scan verdict + incidents
+// ---------------------------------------------------------------------------
+
+/**
+ * Apply an automated scan verdict to a media item.
+ * The DB RPC handles the state machine:
+ *   clean  → approved
+ *   csam   → rejected + incident + NCMEC report row
+ *   review → stays pending (manual review queue)
+ */
+export async function setMediaVerdict(
+  accountId: string,
+  mediaId: string,
+  provider: string,
+  verdict: string,
+): Promise<void> {
+  const sb = getSupabaseAdmin();
+  if (!sb) throw new Error("Supabase not configured");
+  const { error } = await sb.rpc("set_media_verdict", {
+    p_account_id: accountId,
+    p_media_id: mediaId,
+    p_provider: provider,
+    p_verdict: verdict,
+  });
+  if (error) throw new Error(error.message);
+}
+
+export type Incident = {
+  id: string;
+  kind: string;
+  status: string;
+  media_id: string | null;
+  created_at: string;
+};
+
+/** List safety incidents for an account. Returns [] if Supabase is not configured. */
+export async function listIncidents(accountId: string): Promise<Incident[]> {
+  const sb = getSupabaseAdmin();
+  if (!sb) return [];
+  const { data, error } = await sb.rpc("list_incidents", {
+    p_account_id: accountId,
+  });
+  if (error) throw new Error(error.message);
+  return (data ?? []) as Incident[];
+}

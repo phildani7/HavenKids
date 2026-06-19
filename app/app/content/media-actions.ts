@@ -81,6 +81,8 @@ export async function recordUpload(
 
   try {
     const id = await createMedia(accountId, profile.id, postId, path, mime, bytes, isMinor);
+    const { scanAndAct } = await import("@/lib/moderation/scan");
+    try { await scanAndAct(accountId, id, path); } catch { /* media stays pending; never block on scan */ }
     return { ok: true, id };
   } catch {
     return { ok: false, error: "notallowed" };
