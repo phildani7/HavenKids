@@ -6,6 +6,7 @@ import { setAdminUnlock } from "@/lib/session";
 import { requireActiveAdult, requireAdminUnlock } from "@/lib/guards";
 import { isLocked, recordFailure, resetFailures } from "@/lib/rate-limit";
 import { setMediaStatus } from "@/lib/content";
+import { approveChildConnection, blockConnection } from "@/lib/contacts";
 
 const NOTICE_VERSION = "2026-06-16";
 
@@ -103,5 +104,27 @@ export async function clearChildStrikes(formData: FormData) {
   const profiles = await import("@/lib/accounts").then((m) => m.listProfiles(accountId));
   if (!profiles.some((p) => p.id === personId)) redirect("/app/admin");
   await clearStrikes(personId);
+  redirect("/app/admin");
+}
+
+// ---- SAFE-3: parent approval / block of a child's connections (R12) ----
+export async function approveChildConnectionAction(formData: FormData) {
+  const { accountId } = await requireActiveAdult();
+  await requireAdminUnlock(accountId);
+  const connectionId = String(formData.get("connectionId") || "");
+  const childId = String(formData.get("childId") || "");
+  // Ownership of the child is re-checked inside the RPC; verify here too for a clean redirect.
+  const profiles = await listProfiles(accountId);
+  if (!connectionId || !profiles.some((p) => p.id === childId)) redirect("/app/admin");
+  await approveChildConnection(accountId, connectionId, childId);
+  redirect("/app/admin");
+}
+
+export async function blockChildConnectionAction(formData: FormData) {
+  const { accountId } = await requireActiveAdult();
+  await requireAdminUnlock(accountId);
+  const connectionId = String(formData.get("connectionId") || "");
+  if (!connectionId) redirect("/app/admin");
+  await blockConnection(accountId, connectionId);
   redirect("/app/admin");
 }

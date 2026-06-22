@@ -4,8 +4,9 @@ import { accountIdForEmail, listProfiles, adminPinIsSet, resolveActiveProfile, a
 import { getAdminUnlock } from "@/lib/session";
 import { AdminGate } from "./AdminGate";
 import { DeleteChildForm } from "./DeleteChildForm";
-import { addChildProfile, clearChildStrikes, revokeChildConsent, approveMedia, rejectMedia } from "./actions";
+import { addChildProfile, clearChildStrikes, revokeChildConsent, approveMedia, rejectMedia, approveChildConnectionAction, blockChildConnectionAction } from "./actions";
 import { listPendingMedia, mediaSignedUrl, listIncidents } from "@/lib/content";
+import { listChildConnections, listChildMessages } from "@/lib/contacts";
 
 export const dynamic = "force-dynamic";
 
@@ -45,6 +46,16 @@ export default async function AdminPage({
     listPendingMedia(accountId),
     listIncidents(accountId),
   ]);
+  // SAFE-3: per-child contact monitoring (R12). Parents see their child's connections
+  // (pending approvals + active/blocked) and the full bodies of their child's DMs.
+  const childProfiles = profiles.filter((p) => p.kind === "child");
+  const childContacts = await Promise.all(
+    childProfiles.map(async (c) => ({
+      child: c,
+      connections: await listChildConnections(accountId, c.id),
+      messages: await listChildMessages(accountId, c.id),
+    })),
+  );
   // Fetch signed thumbnail URLs for pending media (best-effort; null if unconfigured)
   const pendingWithUrls = await Promise.all(
     pendingMedia.map(async (m) => ({ ...m, thumbUrl: await mediaSignedUrl(m.path) })),
@@ -225,6 +236,70 @@ export default async function AdminPage({
           ))}
         </ul>
       )}
+      <h2 style={{ marginTop: 32 }}>Contacts &amp; messages</h2>
+      <p className="tiny muted" style={{ marginBottom: 12 }}>
+        Your children can only connect with people <strong>you approve</strong>, and you can see all of
+        their messages. Under-13 profiles can&apos;t send direct messages at all.
+      </p>
+      {childContacts.length === 0 ? (
+        <p className="tiny muted">No child profiles yet.</p>
+      ) : (
+        childContacts.map(({ child, connections, messages }) => (
+          <div key={child.id} className="card" style={{ padding: 16, marginBottom: 16 }}>
+            <div style={{ fontWeight: 700 }}>{child.avatar} {child.display_name}</div>
+
+            <div className="tiny muted" style={{ marginTop: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.03em" }}>
+              Connections
+            </div>
+            {connections.length === 0 ? (
+              <p className="tiny muted" style={{ marginTop: 4 }}>No connections.</p>
+            ) : (
+              <ul style={{ listStyle: "none", padding: 0, margin: "4px 0 0" }}>
+                {connections.map((cn) => (
+                  <li key={cn.id} style={{ padding: "8px 0", borderBottom: "1px solid #eee", fontSize: 13, display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
+                    <span className="muted" style={{ wordBreak: "break-all" }}>{cn.other_person}</span>
+                    <span style={{ color: cn.status === "active" ? "#2a9d8f" : cn.status === "blocked" ? "#E85C47" : "#E8A825" }}>
+                      {cn.status === "pending" ? "⏳ awaiting your approval" : cn.status}
+                    </span>
+                    <span style={{ flex: 1 }} />
+                    {cn.status === "pending" && (
+                      <form action={approveChildConnectionAction} style={{ display: "inline" }}>
+                        <input type="hidden" name="connectionId" value={cn.id} />
+                        <input type="hidden" name="childId" value={child.id} />
+                        <button className="btn btn-ghost" type="submit" style={{ color: "#2a9d8f", fontWeight: 800 }}>✓ Approve</button>
+                      </form>
+                    )}
+                    {cn.status !== "blocked" && (
+                      <form action={blockChildConnectionAction} style={{ display: "inline" }}>
+                        <input type="hidden" name="connectionId" value={cn.id} />
+                        <button className="btn btn-ghost" type="submit" style={{ color: "#E85C47", fontWeight: 800 }}>Block</button>
+                      </form>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            )}
+
+            <div className="tiny muted" style={{ marginTop: 14, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.03em" }}>
+              Messages
+            </div>
+            {messages.length === 0 ? (
+              <p className="tiny muted" style={{ marginTop: 4 }}>No messages.</p>
+            ) : (
+              <ul style={{ listStyle: "none", padding: 0, margin: "4px 0 0" }}>
+                {messages.slice(0, 50).map((m) => (
+                  <li key={m.id} style={{ padding: "6px 0", borderBottom: "1px solid #f0f0f0", fontSize: 13 }}>
+                    <span className="muted tiny">{m.sender_id === child.id ? "→ sent" : "← received"} · {new Date(m.created_at).toLocaleString()}</span>
+                    {m.flagged && <span style={{ color: "#E85C47", fontWeight: 800 }}> · flagged</span>}
+                    <div>{m.body}</div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        ))
+      )}
+
       <p className="tiny muted" style={{ marginTop: 24 }}>
         <a href="/app/profiles?choose=1">← Back to profiles</a>
       </p>
