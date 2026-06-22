@@ -4,12 +4,29 @@ import type { DmThreadVM, DmMessageVM } from "@/components/v3/types";
 
 interface MessagesProps {
   dmThreads: DmThreadVM[];
-  activeThread: { name: string; avatar: string; status: string };
+  activeThread: { name: string; avatar: string; status: string; isGroup: boolean };
   activeMessages: DmMessageVM[];
   dmDraft: string;
   onDmDraft: (e: ChangeEvent<HTMLInputElement>) => void;
   onDmKey: (e: KeyboardEvent<HTMLInputElement>) => void;
   sendDm: () => void;
+}
+
+// Small Gabriel mascot used for the kind-words safety nudge — adapted from
+// the old chat's "Angel"/Gabriel moderation cue, restyled for v3 deep water.
+function GabrielMark({ size = 28 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 100 100" style={{ flexShrink: 0 }}>
+      <ellipse cx="22" cy="58" rx="16" ry="20" fill="#fff" stroke="#E8C7F0" strokeWidth="2" />
+      <ellipse cx="78" cy="58" rx="16" ry="20" fill="#fff" stroke="#E8C7F0" strokeWidth="2" />
+      <path d="M30 78 q0 -18 20 -18 q20 0 20 18 v8 h-40 z" fill="#FFF1D6" stroke="#2B2340" strokeWidth="2" />
+      <circle cx="50" cy="48" r="17" fill="#FFE0C2" stroke="#2B2340" strokeWidth="2" />
+      <circle cx="42" cy="50" r="2.5" fill="#2B2340" />
+      <circle cx="58" cy="50" r="2.5" fill="#2B2340" />
+      <path d="M42 58 q8 6 16 0" stroke="#2B2340" strokeWidth="2.5" fill="none" strokeLinecap="round" />
+      <ellipse cx="50" cy="27" rx="15" ry="3.6" fill="none" stroke="#FFC94A" strokeWidth="3" />
+    </svg>
+  );
 }
 
 export function MessagesScreen(props: MessagesProps) {
@@ -52,8 +69,16 @@ export function MessagesScreen(props: MessagesProps) {
             </div>
           ))}
         </div>
+        {activeThread.isGroup && (
+          <div style={{ display: "flex", alignItems: "center", gap: 10, margin: "0 24px", padding: "9px 13px", borderRadius: 14, background: "rgba(255,201,74,.1)", border: "1px solid rgba(255,201,74,.22)" }}>
+            <GabrielMark size={26} />
+            <div style={{ fontFamily: "'Caveat',cursive", fontSize: 15, fontWeight: 700, color: "#FFE9A8", lineHeight: 1.2 }}>
+              Kind words only — I&apos;m here keeping this water safe. 💛
+            </div>
+          </div>
+        )}
         <div style={{ padding: "16px 24px", borderTop: "1px solid rgba(255,255,255,.1)", display: "flex", gap: 10, alignItems: "center" }}>
-          <input value={dmDraft} onChange={onDmDraft} onKeyDown={onDmKey} placeholder="Message — stays between you" style={{ flex: 1, padding: "12px 18px", borderRadius: 999, border: "1.5px solid rgba(255,255,255,.16)", background: "rgba(255,255,255,.07)", color: "#EAF6F4", fontSize: 14, fontWeight: 500, outline: "none" }} />
+          <input value={dmDraft} onChange={onDmDraft} onKeyDown={onDmKey} placeholder={activeThread.isGroup ? "Message the group — kind words only" : "Message — stays between you"} style={{ flex: 1, padding: "12px 18px", borderRadius: 999, border: "1.5px solid rgba(255,255,255,.16)", background: "rgba(255,255,255,.07)", color: "#EAF6F4", fontSize: 14, fontWeight: 500, outline: "none" }} />
           <button onClick={sendDm} style={{ width: 44, height: 44, borderRadius: "50%", background: "#7FC9D6", color: "#0E3A45", fontSize: 18, fontWeight: 800, display: "grid", placeItems: "center" }}>↑</button>
         </div>
       </div>

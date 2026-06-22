@@ -52,6 +52,9 @@ import { ProfileScreen } from "@/components/v3/screens/Profile";
 import { FamilyScreen } from "@/components/v3/screens/Family";
 import { MessagesScreen } from "@/components/v3/screens/Messages";
 import { TagScreen } from "@/components/v3/screens/Tag";
+import { StudioScreen } from "@/components/v3/screens/Studio";
+import { LearnScreen } from "@/components/v3/screens/Learn";
+import { lessons } from "@/lib/v3/data";
 
 // ------- view model types passed to screens -------
 export interface TagChip {
@@ -93,6 +96,8 @@ const NAV_ITEMS = [
   { id: "discover", label: "Discover", iconPath: "M12 3a9 9 0 100 18 9 9 0 000-18zM15.6 8.4l-2.3 4.9-4.9 2.3 2.3-4.9z" },
   { id: "filter", label: "Find Currents", iconPath: "M3 8.5c3-3 6 3 9 0s6-3 9 0M3 15.5c3-3 6 3 9 0s6-3 9 0" },
   { id: "calendar", label: "Calendar", iconPath: "M4 6h16v14H4zM4 10h16M8 3.5v4M16 3.5v4" },
+  { id: "learn", label: "Learn", iconPath: "M3 7l9-4 9 4-9 4-9-4zM7 9.2V14c0 1.2 2.2 2.5 5 2.5s5-1.3 5-2.5V9.2M21 7v5" },
+  { id: "studio", label: "Studio", iconPath: "M4 20l4-1 9.5-9.5-3-3L5 16zM14.5 6l3 3M3.5 20.5h5" },
   { id: "chat", label: "Messages", iconPath: "M4 5h16v10H9l-4 4V5z" },
   { id: "prayer", label: "Prayer Wall", iconPath: "M12 4c1.9 2.7 2.9 3.9 2.9 6.1a2.9 2.9 0 11-5.8 0C9.1 7.9 10.1 6.7 12 4zM7.5 20.5h9" },
   { id: "profile", label: "Profile", iconPath: "M12 11.5a3.5 3.5 0 100-7 3.5 3.5 0 000 7zM5.5 20a6.5 6.5 0 0113 0" },
@@ -449,6 +454,24 @@ export function FishHavenApp({
         act: () => go("home"),
       }),
     );
+    lessons.forEach((l) =>
+      all.push({
+        type: "Lesson",
+        title: l.title,
+        sub: l.lessons + " lessons · Learn",
+        icon: l.thumb,
+        color: hex(l.color),
+        act: () => go("learn"),
+      }),
+    );
+    all.push({
+      type: "Page",
+      title: "Doodle Studio",
+      sub: "draw & share a doodle",
+      icon: "🎨",
+      color: "#FF7E6B",
+      act: () => go("studio"),
+    });
     return all;
   }, [cm, go]);
 
@@ -474,6 +497,7 @@ export function FishHavenApp({
       Events: "Event",
       Scripture: "Scripture",
       Tags: "Tag",
+      Lessons: "Lesson",
     };
     let res = buildResults();
     if (facet !== "All") res = res.filter((r) => r.type === facetMap[facet]);
@@ -630,6 +654,7 @@ export function FishHavenApp({
   const depthOf: Record<string, number> = {
     home: 0, discover: 0, filter: 0, calendar: 0, admin: 2,
     tag: 1, community: 1, profile: 1, prayer: 1, chat: 3,
+    learn: 0, studio: 1,
   };
   let d = depthOf[page] ?? 0;
   if (page === "community") {
@@ -774,7 +799,7 @@ export function FishHavenApp({
   // ---------- palette view ----------
   const results = filteredResults();
   const facetList = [
-    "All", "People", "Communities", "Posts", "Prayers", "Events", "Scripture", "Tags",
+    "All", "People", "Communities", "Posts", "Prayers", "Events", "Scripture", "Tags", "Lessons",
   ].map((label) => {
     const on = facet === label;
     return {
@@ -1188,6 +1213,7 @@ export function FishHavenApp({
   const activeTh = dms[dmThread];
   const activeThread = {
     name: activeTh.name, avatar: activeTh.avatar, status: activeTh.status,
+    isGroup: !!activeTh.group,
   };
   const activeMessagesView = activeMessages.map((m) => {
     const mine = m.me;
@@ -1596,6 +1622,12 @@ export function FishHavenApp({
                 followBtnStyle={{ padding: "9px 18px", borderRadius: "999px", fontSize: "13px", fontWeight: 800, border: "none", background: following ? "rgba(31,122,140,.14)" : prim, color: following ? "#15616F" : "#fff", boxShadow: following ? "none" : "0 " + t.shadow + "px 0 0 " + deep }}
                 goHome={() => go("home")}
               />
+            )}
+            {page === "learn" && (
+              <LearnScreen prim={prim} deep={deep} reduceMotion={reduceMotion} />
+            )}
+            {page === "studio" && (
+              <StudioScreen prim={prim} deep={deep} reduceMotion={reduceMotion} />
             )}
           </div>
         </div>

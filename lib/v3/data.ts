@@ -519,6 +519,116 @@ export const IMG_LABEL: Record<string, string> = {
   dog: "photo · puppy",
 };
 
+// ---------- lessons (Learn / Classroom) ----------
+// Ported from lib/data.ts — real Christian-kids lesson content, retyped
+// for v3 (ColorKey mapped to the Harbour-Light palette).
+export type LessonStepKind = "read" | "reflect" | "do" | "verse" | "quiz";
+
+export interface LessonStep {
+  kind: LessonStepKind;
+  title: string;
+  body: string;
+  verseRef?: string;
+  options?: string[];
+  answer?: number;
+}
+
+export interface Lesson {
+  id: string;
+  community: string;
+  title: string;
+  lessons: number;
+  progress: number;
+  color: ColorKey;
+  thumb: string;
+  description: string;
+  steps: LessonStep[];
+}
+
+export const lessons: Lesson[] = [
+  {
+    id: "c1", community: "bible", title: "Bible 101 for Kids", lessons: 12, progress: 0.75, color: "gold", thumb: "📖",
+    description: "A gentle tour of the Bible — who wrote it, what it is, and why kids love it.",
+    steps: [
+      { kind: "read", title: "What IS the Bible?", body: "The Bible is a library of 66 books written across ~1500 years by 40+ people — and one big message: God loves you and wants to be your friend forever." },
+      { kind: "verse", title: "Today's memory verse", body: "Write it on an index card. Say it 3 times out loud.", verseRef: "Psalm 119:105" },
+      { kind: "reflect", title: "Think about it", body: "If the Bible is a 'lamp to my feet', what choice this week needs a little lamp-light?" },
+      { kind: "do", title: "Tiny doable thing", body: "Open a Bible (paper or app) and pick ONE verse you love. Snap a photo and share it in Bible Buddies." },
+      { kind: "quiz", title: "Quick check", body: "How many books are in the Bible?", options: ["40", "66", "100", "7"], answer: 1 },
+    ],
+  },
+  {
+    id: "c2", community: "art", title: "Draw Bible Stories", lessons: 8, progress: 0.4, color: "coral", thumb: "🎨",
+    description: "Step-by-step drawing lessons for your favorite Bible moments.",
+    steps: [
+      { kind: "read", title: "Today's scene: the burning bush 🔥", body: "Moses meets God in a bush that is on fire but NOT burning up. That's our scene." },
+      { kind: "do", title: "Warm up", body: "Sketch 3 bushes. Then 3 flames. Keep them LOOSE." },
+      { kind: "do", title: "Combine + color", body: "Draw one bush with flames wrapping around. Use yellow, orange, red — and a touch of PURPLE for a glow." },
+      { kind: "reflect", title: "What does it mean?", body: "God shows up in surprising ways. Where did you notice God this week?" },
+    ],
+  },
+  {
+    id: "c3", community: "prayer", title: "Prayer Journal Basics", lessons: 6, progress: 1.0, color: "grape", thumb: "📓",
+    description: "A cozy 6-lesson intro to writing prayers in a journal.",
+    steps: [
+      { kind: "read", title: "P.R.A.Y. format", body: "Praise → Repent → Ask → Yield. Four short lines make a full prayer." },
+      { kind: "do", title: "Try it", body: "Write one line for each letter. No one sees but God." },
+      { kind: "verse", title: "Verse to pray back", body: "Speak this verse as if God were right next to you.", verseRef: "Philippians 4:6-7" },
+    ],
+  },
+  {
+    id: "c4", community: "worship", title: "Kid's Ukulele Worship", lessons: 10, progress: 0.1, color: "reed", thumb: "🎸",
+    description: "Chord shapes and strum patterns with one-song-per-lesson.",
+    steps: [
+      { kind: "read", title: "Meet C, F, and G", body: "Three chords → 100+ worship songs. Look at the shape diagrams." },
+      { kind: "do", title: "Slow strum", body: "Down, down, up, up, down. Eight bars. Don't speed up 😊." },
+      { kind: "reflect", title: "Who would you play this for?", body: "Could be a sibling, a grandparent, or just the living room wall." },
+    ],
+  },
+  {
+    id: "c5", community: "science", title: "Wonder Lab: 6 Experiments", lessons: 6, progress: 0.33, color: "shallows", thumb: "🧪",
+    description: "Kitchen-safe experiments that point to a Creator.",
+    steps: [
+      { kind: "read", title: "Density tower", body: "Honey, syrup, soap, water, oil, alcohol — each rests on the one below. Hands off until a grown-up is around." },
+      { kind: "do", title: "Build it", body: "Pour slowly down the side of a glass. Measure 2 tablespoons of each." },
+      { kind: "reflect", title: "What did you notice?", body: "Why do some liquids stack and others mix? Write one sentence." },
+    ],
+  },
+  {
+    id: "c6", community: "code", title: "Scripture API in 30 minutes", lessons: 5, progress: 0.0, color: "grape", thumb: "💻",
+    description: "Tiny web app that fetches a verse. HTML, CSS, JS.",
+    steps: [
+      { kind: "read", title: "What is an API?", body: "A waiter you can talk to. You order JSON, it brings JSON." },
+      { kind: "do", title: "Type this fetch", body: "fetch('https://bible-api.com/john+3:16').then(r => r.json())" },
+      { kind: "quiz", title: "Quick check", body: "What does fetch return?", options: ["A string", "A Promise", "A number", "A hug"], answer: 1 },
+    ],
+  },
+  {
+    id: "c7", community: "book", title: "Narnia Reader Guide", lessons: 7, progress: 0.57, color: "shallows", thumb: "🦁",
+    description: "One chapter a week with reflection questions.",
+    steps: [
+      { kind: "read", title: "Chapter 3 — Edmund and the Turkish Delight", body: "Notice how each bite makes him want more. What do we 'eat' that makes us want more in a bad way?" },
+      { kind: "reflect", title: "Think", body: "Who is your Tumnus — a brave friend who risks a little to help?" },
+    ],
+  },
+  {
+    id: "c8", community: "home", title: "Study Rhythm for Kids", lessons: 4, progress: 0.25, color: "reed", thumb: "🗓️",
+    description: "Build a kind, doable daily study plan.",
+    steps: [
+      { kind: "read", title: "The 3-block day", body: "Morning main subjects, midday move-your-body, afternoon project time." },
+      { kind: "do", title: "Draft yours", body: "Write the three blocks for tomorrow on a sticky note. Tape to the fridge." },
+    ],
+  },
+  {
+    id: "c10", community: "pets", title: "Care & Parables", lessons: 5, progress: 0.2, color: "gold", thumb: "🐾",
+    description: "How to care for your pet + Bible parables using animals.",
+    steps: [
+      { kind: "read", title: "The lost sheep", body: "One wanders off. Shepherd leaves 99 for the 1. That is how God comes after you." },
+      { kind: "do", title: "Pet check", body: "Water bowl full? Bed clean? Kind words said? Check ✅." },
+    ],
+  },
+];
+
 // ---------- calendar ----------
 export const CAL_YEAR = 2026;
 export const CAL_MONTH = 5;
