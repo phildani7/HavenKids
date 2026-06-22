@@ -15,3 +15,6 @@ bundle.tar
 tsconfig.tsbuildinfo
 
 .vercel
+
+# v3 static-host vendored runtime (reproducible via unpkg download)
+v3-site/vendor/
