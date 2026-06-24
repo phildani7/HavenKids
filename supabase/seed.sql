@@ -1,0 +1,1 @@
+-- FishHaven local seed data. Intentionally empty for now.

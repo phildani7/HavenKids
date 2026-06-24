@@ -9,6 +9,7 @@ import { PostCard } from "./HomePage";
 import { LessonCard } from "./ClassroomPage";
 import { LessonViewer } from "@/components/LessonViewer";
 import type { Route } from "@/components/HavenApp";
+import { CommunityFeed as RealCommunityFeed } from "./CommunityFeed";
 
 export function CommunityPage({
   communityId,
@@ -149,37 +150,17 @@ function CommunityFeed({ posts, user, community }: { posts: ReturnType<typeof Ar
   return (
     <div style={{ display: "grid", gridTemplateColumns: "1fr 320px", gap: 20, alignItems: "start" }}>
       <div className="stack" style={{ gap: 14 }}>
-        <div className="card" style={{ padding: 14 }}>
-          <div className="row" style={{ gap: 12 }}>
-            <Avatar user={user} size={40} ring />
-            <input
-              placeholder={`Share with ${community.name}…`}
-              style={{
-                flex: 1,
-                padding: "10px 16px",
-                border: "2px solid #2B234014",
-                borderRadius: 999,
-                background: "#FFF8E8",
-                fontSize: 14,
-                outline: "none",
-              }}
-            />
-          </div>
-        </div>
-        {posts.length === 0 && (
-          <div className="card" style={{ padding: 40, textAlign: "center" }}>
-            <Angel size={80} />
-            <div style={{ marginTop: 10, fontFamily: "var(--font-display)", fontWeight: 900, fontSize: 22 }}>
-              Be the first to share!
-            </div>
-            <div className="muted" style={{ marginTop: 6 }}>
-              This community is waiting for your kind words.
-            </div>
+        {/* Real persisted feed (C4 batch E) */}
+        <RealCommunityFeed communityId={community.id} canPost={true} />
+        {/* Seed / demo posts below for reference — hidden once real posts exist */}
+        {posts.length > 0 && (
+          <div className="stack" style={{ gap: 14 }}>
+            <div className="muted tiny" style={{ paddingLeft: 4 }}>— demo content —</div>
+            {posts.map((p: any) => (
+              <PostCard key={p.id} post={p} />
+            ))}
           </div>
         )}
-        {posts.map((p: any) => (
-          <PostCard key={p.id} post={p} />
-        ))}
       </div>
       <div className="stack" style={{ gap: 14, position: "sticky", top: 80 }}>
         <div className="card" style={{ padding: 16 }}>
@@ -525,7 +506,7 @@ function AboutTab({ community }: { community: Community }) {
         <div className="divider" style={{ margin: "16px 0" }} />
         <h3>What we&apos;re about</h3>
         <p style={{ marginTop: 6, color: "var(--ink-soft)" }}>
-          A warm, safe corner of Haven Kids for sharing, learning, and growing together in faith and fun. Everyone&apos;s
+          A warm, safe corner of FishHaven for sharing, learning, and growing together in faith and fun. Everyone&apos;s
           welcome. Be kind, be curious, be you.
         </p>
         <div className="divider" style={{ margin: "16px 0" }} />

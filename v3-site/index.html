@@ -1,0 +1,1743 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;0,9..144,900;1,9..144,500&family=Hanken+Grotesk:wght@400;500;600;700;800&family=Caveat:wght@500;700&family=Spline+Sans+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  *,*::before,*::after{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; }
+  body{ font-family:'Hanken Grotesk',ui-sans-serif,system-ui,sans-serif; color:#2B2340; background:#FAF4EA; -webkit-font-smoothing:antialiased; }
+  input,textarea,button{ font-family:inherit; }
+  button{ cursor:pointer; border:none; background:none; color:inherit; }
+  a{ color:inherit; text-decoration:none; }
+  ::selection{ background:#FFC94A; color:#2B2340; }
+  ::-webkit-scrollbar{ width:9px; height:9px; }
+  ::-webkit-scrollbar-thumb{ background:rgba(43,35,64,.18); border-radius:10px; }
+  ::-webkit-scrollbar-track{ background:transparent; }
+  :focus-visible{ outline:2.5px solid var(--c-primary,#1F7A8C); outline-offset:2px; border-radius:8px; }
+  @keyframes bob{ 0%,100%{ transform:translateY(0) } 50%{ transform:translateY(-4px) } }
+  @keyframes swim{ 0%{ transform:translateX(0) } 100%{ transform:translateX(calc(100% - 26px)) } }
+  @keyframes surface{ 0%{ opacity:0; transform:translateY(16px) } 100%{ opacity:1; transform:translateY(0) } }
+  @keyframes ripple{ 0%{ transform:scale(.6); opacity:.6 } 100%{ transform:scale(2.4); opacity:0 } }
+  @keyframes drawloop{ to{ stroke-dashoffset:0 } }
+  /* deploy adaptation: fill wide screens instead of a narrow centered column */
+  .fh-surface{ max-width:1680px !important; margin-left:auto !important; margin-right:auto !important; }
+  @media (prefers-reduced-motion: reduce){ *{ animation:none !important; transition:none !important; } }
+</style>
+</helmet>
+
+<div style="{{ rootStyle }}">
+  <div style="{{ shellStyle }}">
+
+    <!-- ============ DOCK (sidebar) ============ -->
+    <aside style="{{ sidebarStyle }}">
+      <div style="{{ headerStyle }}">
+        <div style="width:42px; height:42px; border-radius:13px; background:linear-gradient(150deg,#1F7A8C,#0E3A45); display:grid; place-items:center; box-shadow:0 3px 0 0 rgba(14,58,69,.4); flex-shrink:0;">
+          <svg width="26" height="17" viewBox="-5 0 32 20" fill="none"><path d="M6 10 Q15 2 24 10 Q15 18 6 10 Z" fill="#FFC94A"></path><path d="M6 10 L0 5 L2.5 10 L0 15 Z" fill="#FFC94A"></path><circle cx="20" cy="9" r="1.3" fill="#0E3A45"></circle></svg>
+        </div>
+        <sc-if value="{{ expanded }}" hint-placeholder-val="{{ true }}">
+          <div style="flex:1;">
+            <div style="font-family:'Fraunces',serif; font-weight:900; font-size:21px; line-height:1; letter-spacing:-.02em;">FishHaven</div>
+            <span style="font-size:10px; font-weight:800; letter-spacing:.14em; text-transform:uppercase; color:#8A82A8; margin-top:3px; display:block;">Community</span>
+          </div>
+        </sc-if>
+        <button onClick="{{ toggleNav }}" title="Toggle sidebar" style="{{ collapseBtnStyle }}">{{ collapseIcon }}</button>
+      </div>
+
+      <div style="display:flex; flex-direction:column; gap:3px;">
+        <sc-for list="{{ nav }}" as="item" hint-placeholder-count="5">
+          <button onClick="{{ item.onClick }}" title="{{ item.title }}" style="{{ item.navStyle }}">
+            <sc-if value="{{ expanded }}" hint-placeholder-val="{{ true }}"><span style="{{ item.lampStyle }}"></span></sc-if>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="{{ item.iconPath }}"></path></svg>
+            <sc-if value="{{ expanded }}" hint-placeholder-val="{{ true }}"><span style="flex:1; text-align:left;">{{ item.label }}</span></sc-if>
+          </button>
+        </sc-for>
+      </div>
+
+      <!-- current divider -->
+      <div style="position:relative; height:14px; margin:12px 8px 6px;">
+        <div style="position:absolute; top:7px; left:0; right:0; height:1.5px; background:rgba(43,35,64,.1); border-radius:2px;"></div>
+        <div style="position:absolute; top:0; left:0; right:0; height:14px;">
+          <svg width="22" height="14" viewBox="-5 0 32 20" style="position:absolute; top:0; left:0; animation:swim 9s linear infinite alternate;"><path d="M6 10 Q15 2 24 10 Q15 18 6 10 Z" fill="#7FC9D6"></path><path d="M6 10 L0 5 L2.5 10 L0 15 Z" fill="#7FC9D6"></path></svg>
+        </div>
+      </div>
+
+      <sc-if value="{{ expanded }}" hint-placeholder-val="{{ true }}"><div style="padding:0 8px 6px; font-size:10px; font-weight:800; letter-spacing:.14em; color:#8A82A8; text-transform:uppercase;">Currents you ride</div></sc-if>
+      <div style="display:flex; flex-direction:column; gap:2px; margin-bottom:6px;">
+        <sc-for list="{{ followedView }}" as="t" hint-placeholder-count="3">
+          <button onClick="{{ t.onClick }}" title="{{ t.title }}" style="{{ t.rowStyle }}">
+            <span style="{{ t.dotStyle }}"></span>
+            <sc-if value="{{ expanded }}" hint-placeholder-val="{{ true }}"><span style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{ t.label }}</span></sc-if>
+          </button>
+        </sc-for>
+      </div>
+
+      <sc-if value="{{ expanded }}" hint-placeholder-val="{{ true }}"><div style="padding:0 8px 6px; font-size:10px; font-weight:800; letter-spacing:.14em; color:#8A82A8; text-transform:uppercase;">Your communities</div></sc-if>
+      <div style="display:flex; flex-direction:column; gap:2px;">
+        <sc-for list="{{ myCommunities }}" as="c" hint-placeholder-count="4">
+          <button onClick="{{ c.onClick }}" title="{{ c.title }}" style="{{ c.rowStyle }}">
+            <span style="width:28px; height:28px; border-radius:9px; display:grid; place-items:center; font-size:15px; background:{{ c.cover }}; border:1.5px solid rgba(43,35,64,.08); flex-shrink:0;">{{ c.emoji }}</span>
+            <sc-if value="{{ expanded }}" hint-placeholder-val="{{ true }}"><span style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{ c.name }}</span></sc-if>
+          </button>
+        </sc-for>
+      </div>
+
+      <div style="flex:1;"></div>
+
+      <button onClick="{{ goProfile }}" style="{{ profileBtnStyle }}">
+        <span style="width:38px; height:38px; border-radius:50%; display:grid; place-items:center; font-size:20px; background:#EAF6F4; border:2.5px solid #1F7A8C; flex-shrink:0;">{{ me.avatar }}</span>
+        <sc-if value="{{ expanded }}" hint-placeholder-val="{{ true }}">
+          <div style="flex:1; min-width:0;">
+            <div style="font-weight:800; font-size:13px;">{{ me.name }}</div>
+            <div style="font-size:11px; color:#8A82A8; font-weight:600;">Level {{ me.level }} · 13–17</div>
+          </div>
+        </sc-if>
+      </button>
+    </aside>
+
+    <!-- ============ MAIN ============ -->
+    <div style="display:flex; flex-direction:column; min-width:0;">
+
+      <!-- top bar -->
+      <div style="position:sticky; top:0; z-index:20; display:flex; align-items:center; gap:14px; padding:14px 26px; background:rgba(250,244,234,.82); backdrop-filter:blur(12px); border-bottom:1px solid rgba(43,35,64,.07);">
+        <button onClick="{{ openPalette }}" style="flex:1; max-width:540px; display:flex; align-items:center; gap:11px; background:#fff; padding:11px 16px; border-radius:999px; border:1.5px solid rgba(43,35,64,.1); box-shadow:0 2px 0 0 rgba(43,35,64,.05); color:#8A82A8; font-weight:600; font-size:14px;">
+          <span style="display:inline-flex; color:#8A82A8;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10.5 10.5m-6.5 0a6.5 6.5 0 1013 0 6.5 6.5 0 10-13 0M20 20l-4.6-4.6"></path></svg></span>
+          <span style="flex:1; text-align:left; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Cast into the harbor — people, verses, currents…</span>
+          <span style="display:inline-flex; gap:3px; align-items:center; padding:3px 9px; border-radius:999px; background:#FFF8EC; color:#8A6B00; font-size:11px; font-weight:800; font-family:'Spline Sans Mono',monospace; white-space:nowrap;">⌘K</span>
+        </button>
+        <div style="position:relative;">
+          <button onClick="{{ toggleBell }}" title="Notifications" style="position:relative; width:42px; height:42px; border-radius:50%; background:#fff; border:1.5px solid rgba(43,35,64,.08); display:grid; place-items:center; color:#5A4E7A;"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7 9a5 5 0 0110 0c0 4 1.7 5.2 1.7 5.2H5.3S7 13 7 9zM10 20a2 2 0 004 0"></path></svg><sc-if value="{{ hasUnread }}" hint-placeholder-val="{{ true }}"><span style="position:absolute; top:6px; right:7px; min-width:16px; height:16px; padding:0 4px; border-radius:999px; background:#FF7E6B; color:#fff; font-size:10px; font-weight:800; display:grid; place-items:center; border:2px solid #fff;">{{ unread }}</span></sc-if></button>
+          <sc-if value="{{ bellOpen }}" hint-placeholder-val="{{ false }}">
+            <div onClick="{{ closeOverlays }}" style="position:fixed; inset:0; z-index:38;"></div>
+            <div style="position:absolute; top:calc(100% + 12px); right:0; z-index:39; width:340px; background:#fff; border-radius:18px; border:1.5px solid rgba(43,35,64,.1); box-shadow:0 20px 50px rgba(14,58,69,.22); overflow:hidden;">
+              <div style="display:flex; align-items:center; justify-content:space-between; padding:15px 18px 11px;">
+                <div style="font-family:'Fraunces',serif; font-weight:800; font-size:18px;">Notifications</div>
+                <span style="font-size:12px; font-weight:800; color:#15616F; background:rgba(31,122,140,.1); padding:3px 10px; border-radius:999px;">{{ unread }} new</span>
+              </div>
+              <div style="max-height:380px; overflow-y:auto; padding:2px 8px 8px;">
+                <sc-for list="{{ notifsView }}" as="n" hint-placeholder-count="4">
+                  <button onClick="{{ noop }}" style="{{ n.rowStyle }}">
+                    <span style="{{ n.iconStyle }}">{{ n.icon }}</span>
+                    <div style="flex:1; min-width:0;">
+                      <div style="font-weight:800; font-size:13.5px; line-height:1.25;">{{ n.title }}</div>
+                      <div style="font-size:12.5px; color:#5A4E7A; font-weight:500; margin-top:2px; line-height:1.35;">{{ n.body }}</div>
+                    </div>
+                    <span style="font-size:11px; color:#8A82A8; font-weight:700; flex-shrink:0;">{{ n.time }}</span>
+                  </button>
+                </sc-for>
+              </div>
+              <button onClick="{{ closeOverlays }}" style="width:100%; padding:12px; border-top:1px solid rgba(43,35,64,.07); font-size:13px; font-weight:800; color:#15616F;">Mark all read</button>
+            </div>
+          </sc-if>
+        </div>
+        <div style="position:relative;">
+          <button onClick="{{ toggleMenu }}" title="{{ me.name }}" style="width:42px; height:42px; border-radius:50%; display:grid; place-items:center; font-size:21px; background:#EAF6F4; border:2.5px solid var(--c-primary,#1F7A8C);">{{ me.avatar }}</button>
+          <sc-if value="{{ menuOpen }}" hint-placeholder-val="{{ false }}">
+            <div onClick="{{ closeOverlays }}" style="position:fixed; inset:0; z-index:38;"></div>
+            <div style="position:absolute; top:calc(100% + 12px); right:0; z-index:39; width:280px; background:#fff; border-radius:18px; border:1.5px solid rgba(43,35,64,.1); box-shadow:0 20px 50px rgba(14,58,69,.22); padding:10px;">
+              <div style="font-size:10px; font-weight:800; letter-spacing:.14em; text-transform:uppercase; color:#8A82A8; padding:6px 10px;">Switch profile</div>
+              <sc-for list="{{ profilesView }}" as="p" hint-placeholder-count="3">
+                <button onClick="{{ p.onClick }}" style="{{ p.rowStyle }}">
+                  <span style="{{ p.avatarStyle }}">{{ p.avatar }}</span>
+                  <div style="flex:1; min-width:0;"><div style="font-weight:800; font-size:13.5px;">{{ p.name }}</div><div style="font-size:11.5px; color:#8A82A8; font-weight:600;">{{ p.sub }}</div></div>
+                  <sc-if value="{{ p.active }}" hint-placeholder-val="{{ false }}"><span style="font-size:12px; font-weight:800; color:#15616F;">●</span></sc-if>
+                </button>
+              </sc-for>
+              <div style="height:1px; background:rgba(43,35,64,.07); margin:8px 6px;"></div>
+              <button onClick="{{ goProfileFromMenu }}" style="display:flex; align-items:center; gap:11px; width:100%; padding:9px 10px; border-radius:11px; text-align:left; font-size:13.5px; font-weight:700; border:none; background:transparent;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#5A4E7A" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 11.5a3.5 3.5 0 100-7 3.5 3.5 0 000 7zM5.5 20a6.5 6.5 0 0113 0"></path></svg>View my profile</button>
+              <button onClick="{{ goAdmin }}" style="display:flex; align-items:center; gap:11px; width:100%; padding:9px 10px; border-radius:11px; text-align:left; font-size:13.5px; font-weight:700; border:none; background:transparent;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#5A4E7A" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.4-3 8-7 10-4-2-7-5.6-7-10V6z"></path></svg>Family &amp; safety</button>
+              <button onClick="{{ noop }}" style="display:flex; align-items:center; gap:11px; width:100%; padding:9px 10px; border-radius:11px; text-align:left; font-size:13.5px; font-weight:700; color:#E85C47; border:none; background:transparent;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E85C47" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M15 4h4v16h-4M14 12H4M8 8l-4 4 4 4"></path></svg>Sign out</button>
+            </div>
+          </sc-if>
+        </div>
+      </div>
+
+      <!-- depth-aware content well -->
+      <div style="{{ depthStyle }}">
+
+        <!-- ========== HOME ========== -->
+        <sc-if value="{{ isHome }}" hint-placeholder-val="{{ true }}">
+        <div class="fh-surface" style="max-width:1180px; margin:0 auto; padding:26px 30px 90px;">
+          <!-- hero -->
+          <div style="display:grid; grid-template-columns:1.55fr 1fr; gap:18px; margin-bottom:18px;">
+            <div style="position:relative; overflow:hidden; padding:30px 34px; border-radius:26px; background:radial-gradient(120% 140% at 85% 10%, rgba(127,201,214,.35), transparent 55%), linear-gradient(135deg,#1F7A8C 0%,#0E3A45 100%); color:#EAF6F4; box-shadow:0 10px 30px rgba(14,58,69,.28);">
+              <div style="font-size:11px; font-weight:800; letter-spacing:.14em; text-transform:uppercase; color:#9FDCE6;">Welcome back, {{ me.name }}</div>
+              <h1 style="font-family:'Fraunces',serif; font-weight:900; font-size:38px; line-height:1.04; letter-spacing:-.02em; margin:10px 0 0; max-width:430px;">You've arrived somewhere alive.</h1>
+              <p style="margin:12px 0 0; font-size:15px; line-height:1.5; color:#CDEAEF; max-width:420px; font-weight:500;">Your communities are humming right now. Dive in, share something real, and ride the currents you care about.</p>
+              <div style="display:flex; gap:10px; margin-top:20px;">
+                <button onClick="{{ goDiscover }}" style="padding:12px 22px; border-radius:999px; font-weight:800; font-size:15px; background:#FFC94A; color:#2B2340; box-shadow:0 var(--shadow-off,3px) 0 0 #B9851A;">Explore harbors</button>
+                <button onClick="{{ openPalette }}" style="padding:12px 22px; border-radius:999px; font-weight:800; font-size:15px; background:rgba(255,255,255,.14); color:#EAF6F4; border:1.5px solid rgba(255,255,255,.25);">Search anything</button>
+              </div>
+              <!-- presence shoal -->
+              <div style="margin-top:24px; display:flex; align-items:center; gap:12px;">
+                <div style="position:relative; height:34px; display:flex; align-items:center;">
+                  <sc-for list="{{ heroShoal }}" as="f" hint-placeholder-count="14">
+                    <svg width="24" height="15" viewBox="-5 0 32 20" style="{{ f.style }}"><path d="M6 10 Q15 2 24 10 Q15 18 6 10 Z" fill="currentColor"></path><path d="M6 10 L0 5 L2.5 10 L0 15 Z" fill="currentColor"></path></svg>
+                  </sc-for>
+                </div>
+                <div style="font-size:13px; font-weight:700; color:#CDEAEF;"><span style="color:#fff; font-weight:800;">214 friends</span> swimming nearby</div>
+              </div>
+            </div>
+            <!-- verse of day -->
+            <div style="position:relative; overflow:hidden; padding:22px; border-radius:26px; background:linear-gradient(135deg,#FFF4C4,#FFE28A); border:1.5px solid rgba(232,168,37,.3);">
+              <div style="position:absolute; top:-18px; right:-10px; font-size:120px; opacity:.12; line-height:1;">✝</div>
+              <div style="font-size:10px; font-weight:800; letter-spacing:.14em; text-transform:uppercase; color:#8A6B00;">Verse of the day · Wonder</div>
+              <div style="font-family:'Fraunces',serif; font-style:italic; font-weight:600; font-size:20px; line-height:1.28; margin-top:10px; color:#2B2340;">"I praise you because I am fearfully and wonderfully made; your works are wonderful."</div>
+              <button onClick="{{ openPsalm139 }}" style="margin-top:14px; display:inline-flex; align-items:center; gap:7px; padding:6px 13px; border-radius:999px; background:rgba(232,168,37,.22); color:#8A6B00; font-size:13px; font-weight:800;"><span>✝</span> Psalm 139:14</button>
+            </div>
+          </div>
+
+          <!-- quick actions -->
+          <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:22px;">
+            <sc-for list="{{ quickActions }}" as="q" hint-placeholder-count="4">
+              <button onClick="{{ q.onClick }}" style="{{ q.style }}">
+                <span style="{{ q.iconWrap }}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="{{ q.tint }}" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="{{ q.iconPath }}"></path></svg></span>
+                <div style="font-weight:700; font-size:14px; margin-top:12px; color:#2B2340;">{{ q.label }}</div>
+                <div style="font-size:12.5px; margin-top:3px; font-weight:500; color:#8A82A8;">{{ q.sub }}</div>
+              </button>
+            </sc-for>
+          </div>
+
+          <!-- feed + rail -->
+          <div style="display:grid; grid-template-columns:1fr 318px; gap:20px; align-items:start;">
+            <div style="display:flex; flex-direction:column; gap:14px; min-width:0;">
+              <!-- composer -->
+              <div style="background:#fff; border-radius:20px; box-shadow:0 var(--shadow-off,3px) 0 0 rgba(43,35,64,.05),0 8px 22px rgba(43,35,64,.06); border:1.5px solid rgba(43,35,64,.06); padding:14px;">
+                <div style="display:flex; align-items:center; gap:12px;">
+                  <span style="width:42px; height:42px; border-radius:50%; display:grid; place-items:center; font-size:21px; background:#EAF6F4; border:2.5px solid var(--c-primary,#1F7A8C);">{{ me.avatar }}</span>
+                  <input value="{{ composer }}" onInput="{{ onComposer }}" placeholder="Share with your community…" style="flex:1; padding:12px 16px; border:1.5px solid rgba(43,35,64,.1); border-radius:999px; background:#FFF8EC; font-size:14px; font-weight:600; outline:none;">
+                </div>
+                <div style="display:flex; gap:8px; margin-top:12px; padding-left:54px; flex-wrap:wrap;">
+                  <sc-for list="{{ composerChips }}" as="ch" hint-placeholder-count="5">
+                    <button onClick="{{ noop }}" style="display:inline-flex; align-items:center; gap:7px; padding:7px 13px; border-radius:999px; background:rgba(43,35,64,.05); font-size:13px; font-weight:700; color:#5A4E7A;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="{{ ch.iconPath }}"></path></svg><span>{{ ch.label }}</span></button>
+                  </sc-for>
+                </div>
+                <!-- AI auto-tags: hidden by default, expand to view/edit/add -->
+                <sc-if value="{{ showAutoTags }}" hint-placeholder-val="{{ false }}">
+                <div style="margin-top:12px; margin-left:54px; border-top:1px dashed rgba(43,35,64,.1); padding-top:12px;">
+                  <button onClick="{{ toggleTags }}" style="display:flex; align-items:center; gap:9px; width:100%; text-align:left;">
+                    <svg width="22" height="22" viewBox="0 0 100 100" style="flex-shrink:0;"><circle cx="50" cy="50" r="30" fill="#FFF1D6" stroke="#2B2340" stroke-width="3"></circle><circle cx="42" cy="48" r="2.6" fill="#2B2340"></circle><circle cx="58" cy="48" r="2.6" fill="#2B2340"></circle><path d="M42 58 q8 6 16 0" stroke="#2B2340" stroke-width="2.6" fill="none" stroke-linecap="round"></path><ellipse cx="50" cy="22" rx="13" ry="3" fill="none" stroke="#FFC94A" stroke-width="3"></ellipse></svg>
+                    <span style="font-size:13px; font-weight:800; color:#8A6B00;">Gabriel tagged this</span>
+                    <span style="font-size:12px; font-weight:700; color:#8A82A8; flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{ autoTagSummary }}</span>
+                    <span style="font-size:13px; color:#8A82A8;">{{ tagsCaret }}</span>
+                  </button>
+                  <sc-if value="{{ tagsOpen }}" hint-placeholder-val="{{ false }}">
+                    <div style="margin-top:12px;">
+                      <div style="display:flex; gap:7px; flex-wrap:wrap; align-items:center;">
+                        <sc-for list="{{ autoTagChips }}" as="t" hint-placeholder-count="3">
+                          <span style="{{ t.style }}"><span>{{ t.icon }}</span><span>{{ t.label }}</span><button onClick="{{ t.onRemove }}" style="width:18px; height:18px; border-radius:50%; background:rgba(255,255,255,.3); color:#fff; font-size:12px; font-weight:800; display:grid; place-items:center; line-height:1;">×</button></span>
+                        </sc-for>
+                      </div>
+                      <div style="display:flex; gap:8px; margin-top:11px;">
+                        <input value="{{ newTag }}" onInput="{{ onNewTag }}" onKeyDown="{{ onNewTagKey }}" placeholder="Add your own tag…" style="flex:1; padding:8px 14px; border:1.5px solid rgba(43,35,64,.12); border-radius:999px; background:#FFF8EC; font-size:13px; font-weight:600; outline:none;">
+                        <button onClick="{{ addComposerTag }}" style="padding:8px 16px; border-radius:999px; font-weight:800; font-size:13px; background:rgba(31,122,140,.12); color:#15616F; border:none;">Add</button>
+                      </div>
+                      <div style="font-size:11.5px; color:#8A82A8; font-weight:600; margin-top:9px;">Gabriel auto-detects scripture &amp; topics — edit freely before you post.</div>
+                    </div>
+                  </sc-if>
+                </div>
+                </sc-if>
+
+                <!-- visibility + share footer -->
+                <div style="display:flex; align-items:center; gap:10px; margin-top:14px; padding-top:14px; border-top:1px solid rgba(43,35,64,.07);">
+                  <div style="position:relative;">
+                    <button onClick="{{ toggleVisOpen }}" style="display:inline-flex; align-items:center; gap:7px; padding:8px 14px; border-radius:999px; background:rgba(31,122,140,.08); color:#15616F; font-size:13px; font-weight:800; border:1.5px solid rgba(31,122,140,.18);">
+                      <span>{{ visIcon }}</span><span>{{ visLabel }}</span><span style="font-size:11px;">▾</span>
+                    </button>
+                    <sc-if value="{{ visOpen }}" hint-placeholder-val="{{ false }}">
+                      <div style="position:absolute; bottom:calc(100% + 8px); left:0; z-index:30; width:288px; background:#fff; border-radius:16px; border:1.5px solid rgba(43,35,64,.1); box-shadow:0 18px 44px rgba(43,35,64,.2); padding:12px;">
+                        <div style="font-size:11px; font-weight:800; letter-spacing:.1em; text-transform:uppercase; color:#8A82A8; padding:2px 8px 8px;">Who can see this?</div>
+                        <sc-for list="{{ visModeRadios }}" as="o" hint-placeholder-count="3">
+                          <button onClick="{{ o.onClick }}" style="{{ o.rowStyle }}">
+                            <span style="font-size:18px; width:24px; text-align:center;">{{ o.icon }}</span>
+                            <div style="flex:1;"><div style="font-weight:800; font-size:13.5px;">{{ o.title }}</div><div style="font-size:11.5px; color:#8A82A8; font-weight:600;">{{ o.sub }}</div></div>
+                            <sc-if value="{{ o.dot }}" hint-placeholder-val="{{ false }}"><span style="width:18px; height:18px; border-radius:50%; background:var(--c-primary,#1F7A8C); color:#fff; font-size:11px; display:grid; place-items:center;">✓</span></sc-if>
+                          </button>
+                        </sc-for>
+                        <sc-if value="{{ visIsSelect }}" hint-placeholder-val="{{ false }}">
+                          <div style="margin-top:6px; padding:10px 8px 4px; border-top:1px solid rgba(43,35,64,.07); display:flex; flex-direction:column; gap:2px;">
+                            <sc-for list="{{ visCommunityChecks }}" as="c" hint-placeholder-count="4">
+                              <button onClick="{{ c.onClick }}" style="display:flex; align-items:center; gap:10px; padding:7px 8px; border-radius:10px; text-align:left;">
+                                <span style="{{ c.boxStyle }}">{{ c.check }}</span>
+                                <span style="font-size:15px;">{{ c.emoji }}</span>
+                                <span style="flex:1; font-size:13.5px; font-weight:700;">{{ c.name }}</span>
+                              </button>
+                            </sc-for>
+                          </div>
+                        </sc-if>
+                        <div style="font-size:11px; color:#8A82A8; font-weight:600; padding:9px 8px 2px; line-height:1.4;">One post — never re-post. Comments stay visible to every community you choose.</div>
+                      </div>
+                    </sc-if>
+                  </div>
+                  <div style="flex:1;"></div>
+                  <button onClick="{{ noop }}" style="padding:10px 22px; border-radius:999px; font-weight:800; font-size:14px; background:var(--c-primary,#1F7A8C); color:#fff; box-shadow:0 var(--shadow-off,3px) 0 0 var(--c-primary-deep,#15616F);">Share</button>
+                </div>
+              </div>
+
+              <!-- currents filter -->
+              <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                <sc-for list="{{ filters }}" as="f" hint-placeholder-count="5">
+                  <button onClick="{{ f.onClick }}" style="{{ f.style }}">{{ f.label }}</button>
+                </sc-for>
+              </div>
+
+              <!-- posts -->
+              <sc-for list="{{ feedView }}" as="p" hint-placeholder-count="4">
+                <div style="background:#fff; border-radius:20px; box-shadow:0 var(--shadow-off,3px) 0 0 rgba(43,35,64,.05),0 8px 22px rgba(43,35,64,.06); border:1.5px solid rgba(43,35,64,.06); padding:18px;">
+                  <sc-if value="{{ p.pinned }}" hint-placeholder-val="{{ false }}">
+                    <div style="display:inline-flex; align-items:center; gap:6px; margin-bottom:11px; background:#FFF4C4; color:#8A6B00; padding:4px 11px; border-radius:999px; font-size:10px; font-weight:800; letter-spacing:.08em; text-transform:uppercase;">📌 Pinned</div>
+                  </sc-if>
+                  <div style="display:flex; align-items:center; gap:12px;">
+                    <span style="width:44px; height:44px; border-radius:50%; display:grid; place-items:center; font-size:22px; background:#FFF8EC; border:2.5px solid {{ p.uColor }};">{{ p.uAvatar }}</span>
+                    <div style="flex:1; min-width:0;">
+                      <div style="font-weight:800; font-size:14px;">{{ p.uName }}</div>
+                      <div style="font-size:12px; color:#8A82A8; font-weight:600;">in <span style="color:#5A4E7A; font-weight:700;">{{ p.cEmoji }} {{ p.cName }}</span> · {{ p.time }}</div>
+                    </div>
+                    <sc-if value="{{ p.crossShared }}" hint-placeholder-val="{{ false }}">
+                      <span title="{{ p.shareNote }}" style="display:inline-flex; align-items:center; gap:5px; padding:5px 11px; border-radius:999px; background:rgba(31,122,140,.1); color:#15616F; font-size:11.5px; font-weight:800; white-space:nowrap;"><span>{{ p.shareIcon }}</span><span>{{ p.shareLabel }}</span></span>
+                    </sc-if>
+                  </div>
+                  <h3 style="font-family:'Fraunces',serif; font-weight:700; font-size:19px; line-height:1.2; margin:13px 0 0;">{{ p.title }}</h3>
+                  <p style="margin:7px 0 0; font-size:14.5px; line-height:1.5; color:#5A4E7A; font-weight:500;">{{ p.body }}</p>
+                  <sc-if value="{{ p.crossShared }}" hint-placeholder-val="{{ false }}">
+                    <div style="margin-top:11px; display:inline-flex; align-items:center; gap:7px; padding:7px 12px; border-radius:10px; background:#FFF8EC; color:#8A6B00; font-size:12px; font-weight:600;"><span>{{ p.shareIcon }}</span><span>{{ p.shareNote }}</span></div>
+                  </sc-if>
+
+                  <sc-if value="{{ p.image }}" hint-placeholder-val="{{ false }}">
+                    <div style="margin-top:13px; height:190px; border-radius:16px; background:{{ p.imageBg }}; display:grid; place-items:center; border:1.5px solid rgba(43,35,64,.08); position:relative; overflow:hidden;">
+                      <div style="font-family:'Spline Sans Mono',monospace; font-size:11px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:rgba(43,35,64,.42); background:rgba(255,255,255,.55); padding:5px 11px; border-radius:999px;">{{ p.imageLabel }}</div>
+                    </div>
+                  </sc-if>
+
+                  <sc-if value="{{ p.angelNote }}" hint-placeholder-val="{{ false }}">
+                    <div style="margin-top:13px; display:flex; align-items:center; gap:11px; padding:10px 14px; border-radius:14px; background:linear-gradient(135deg,#FFF8EC,#FFF1D6); border:1.5px solid rgba(255,201,74,.4);">
+                      <svg width="30" height="30" viewBox="0 0 100 100"><ellipse cx="22" cy="58" rx="16" ry="20" fill="#fff" stroke="#E8C7F0" stroke-width="2"></ellipse><ellipse cx="78" cy="58" rx="16" ry="20" fill="#fff" stroke="#E8C7F0" stroke-width="2"></ellipse><path d="M30 78 q0 -18 20 -18 q20 0 20 18 v8 h-40 z" fill="#FFF1D6" stroke="#2B2340" stroke-width="2"></path><circle cx="50" cy="48" r="17" fill="#FFE0C2" stroke="#2B2340" stroke-width="2"></circle><circle cx="42" cy="50" r="2.4" fill="#2B2340"></circle><circle cx="58" cy="50" r="2.4" fill="#2B2340"></circle><path d="M42 58 q8 6 16 0" stroke="#2B2340" stroke-width="2.4" fill="none" stroke-linecap="round"></path><ellipse cx="50" cy="27" rx="15" ry="3.6" fill="none" stroke="#FFC94A" stroke-width="3"></ellipse></svg>
+                      <div style="font-family:'Caveat',cursive; font-size:17px; font-weight:700; color:#8A6B00;">{{ p.angelNote }}</div>
+                    </div>
+                  </sc-if>
+
+                  <div style="display:flex; gap:7px; flex-wrap:wrap; margin-top:14px;">
+                    <sc-for list="{{ p.tagList }}" as="t" hint-placeholder-count="2">
+                      <button onClick="{{ t.onClick }}" style="{{ t.style }}"><span>{{ t.icon }}</span><span>{{ t.label }}</span></button>
+                    </sc-for>
+                  </div>
+
+                  <div style="height:1px; background:rgba(43,35,64,.07); margin:14px 0;"></div>
+                  <div style="display:flex; gap:6px; flex-wrap:wrap; align-items:center;">
+                    <sc-for list="{{ p.reactionList }}" as="r" hint-placeholder-count="4">
+                      <button onClick="{{ r.onClick }}" style="{{ r.style }}"><span>{{ r.icon }}</span><span>{{ r.count }}</span></button>
+                    </sc-for>
+                    <div style="flex:1;"></div>
+                    <button onClick="{{ noop }}" style="display:inline-flex; align-items:center; gap:6px; padding:8px 13px; border-radius:999px; background:rgba(43,35,64,.05); font-size:13px; font-weight:700; color:#5A4E7A;">💬 {{ p.comments }}</button>
+                    <button onClick="{{ noop }}" style="display:inline-flex; align-items:center; gap:6px; padding:8px 13px; border-radius:999px; background:rgba(43,35,64,.05); font-size:13px; font-weight:700; color:#5A4E7A;">↗ Share</button>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+
+            <!-- right rail -->
+            <div style="display:flex; flex-direction:column; gap:14px; position:sticky; top:84px;">
+              <!-- active now shoal -->
+              <div style="background:#fff; border-radius:20px; border:1.5px solid rgba(43,35,64,.06); box-shadow:0 8px 22px rgba(43,35,64,.06); padding:16px;">
+                <div style="display:flex; align-items:center; justify-content:space-between;">
+                  <div style="font-family:'Fraunces',serif; font-weight:700; font-size:17px;">Alive right now</div>
+                  <span style="width:9px; height:9px; border-radius:50%; background:#4FB058; box-shadow:0 0 0 4px rgba(79,176,88,.22);"></span>
+                </div>
+                <div style="position:relative; height:60px; margin-top:14px;">
+                  <sc-for list="{{ railShoal }}" as="f" hint-placeholder-count="11">
+                    <svg width="26" height="16" viewBox="-5 0 32 20" style="{{ f.railStyle }}"><path d="M6 10 Q15 2 24 10 Q15 18 6 10 Z" fill="currentColor"></path><path d="M6 10 L0 5 L2.5 10 L0 15 Z" fill="currentColor"></path><circle cx="20" cy="9" r="1.1" fill="rgba(14,58,69,.5)"></circle></svg>
+                  </sc-for>
+                </div>
+                <div style="font-size:12.5px; color:#8A82A8; font-weight:600; margin-top:6px;">A whole shoal is here — drop a post and they'll see it.</div>
+              </div>
+
+              <!-- trending currents -->
+              <div style="background:#fff; border-radius:20px; border:1.5px solid rgba(43,35,64,.06); box-shadow:0 8px 22px rgba(43,35,64,.06); padding:16px;">
+                <div style="font-family:'Fraunces',serif; font-weight:700; font-size:17px; margin-bottom:12px;">Strong currents</div>
+                <div style="display:flex; flex-direction:column; gap:8px;">
+                  <sc-for list="{{ trendingView }}" as="c" hint-placeholder-count="5">
+                    <button onClick="{{ c.onClick }}" style="display:flex; align-items:center; gap:11px; padding:8px; border-radius:12px; text-align:left;">
+                      <span style="width:30px; height:30px; border-radius:9px; display:grid; place-items:center; font-size:13px; font-weight:800; color:#fff; background:{{ c.color }};">{{ c.icon }}</span>
+                      <div style="flex:1; min-width:0;">
+                        <div style="font-weight:700; font-size:13.5px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{ c.label }}</div>
+                        <div style="font-size:11.5px; color:#8A82A8; font-weight:600;">{{ c.count }} riding</div>
+                      </div>
+                      <sc-if value="{{ c.hot }}" hint-placeholder-val="{{ false }}"><span style="font-size:13px;">🌊</span></sc-if>
+                    </button>
+                  </sc-for>
+                </div>
+              </div>
+
+              <!-- upcoming -->
+              <div style="background:#fff; border-radius:20px; border:1.5px solid rgba(43,35,64,.06); box-shadow:0 8px 22px rgba(43,35,64,.06); padding:16px;">
+                <div style="font-family:'Fraunces',serif; font-weight:700; font-size:17px; margin-bottom:12px;">This week</div>
+                <div style="display:flex; flex-direction:column; gap:8px;">
+                  <sc-for list="{{ eventsView }}" as="e" hint-placeholder-count="4">
+                    <div style="display:flex; align-items:center; gap:11px; padding:8px; border-radius:12px; background:#FFFBF2;">
+                      <div style="width:44px; height:44px; border-radius:12px; background:#fff; border:1.5px solid rgba(43,35,64,.1); display:grid; place-items:center;">
+                        <div style="font-size:9px; font-weight:800; color:#8A6B00; letter-spacing:.08em;">{{ e.day }}</div>
+                        <div style="font-size:16px; font-weight:800; margin-top:-2px;">{{ e.date }}</div>
+                      </div>
+                      <div style="flex:1; min-width:0;">
+                        <div style="font-weight:800; font-size:13px; line-height:1.2;">{{ e.title }}</div>
+                        <div style="font-size:11.5px; color:#8A82A8; font-weight:600;">{{ e.time }} · {{ e.cName }}</div>
+                      </div>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        </sc-if>
+
+        <!-- ========== DISCOVER ========== -->
+        <sc-if value="{{ isDiscover }}" hint-placeholder-val="{{ false }}">
+        <div class="fh-surface" style="max-width:1100px; margin:0 auto; padding:30px 30px 90px;">
+          <div style="font-size:11px; font-weight:800; letter-spacing:.14em; text-transform:uppercase; color:#8A82A8;">Discover</div>
+          <h1 style="font-family:'Fraunces',serif; font-weight:900; font-size:34px; letter-spacing:-.02em; margin:8px 0 4px;">Harbors to sail into</h1>
+          <p style="font-size:15px; color:#5A4E7A; font-weight:500; max-width:560px; margin:0 0 22px;">Each community is its own water. Look across the harbor — the busier the shoal, the more alive it is right now.</p>
+          <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:16px;">
+            <sc-for list="{{ discoverView }}" as="c" hint-placeholder-count="9">
+              <div style="background:#fff; border-radius:20px; border:1.5px solid rgba(43,35,64,.06); box-shadow:0 var(--shadow-off,3px) 0 0 rgba(43,35,64,.05),0 8px 22px rgba(43,35,64,.06); overflow:hidden; display:flex; flex-direction:column;">
+                <div style="height:96px; background:{{ c.cover }}; position:relative; display:flex; align-items:flex-end; padding:12px;">
+                  <span style="position:absolute; top:12px; left:12px; width:44px; height:44px; border-radius:13px; background:rgba(255,255,255,.9); display:grid; place-items:center; font-size:23px; box-shadow:0 3px 10px rgba(0,0,0,.12);">{{ c.emoji }}</span>
+                  <div style="position:relative; height:24px; flex:1; display:flex; align-items:center; justify-content:flex-end;">
+                    <sc-for list="{{ c.shoal }}" as="f" hint-placeholder-count="5">
+                      <svg width="20" height="13" viewBox="-5 0 32 20" style="{{ f.style }}"><path d="M6 10 Q15 2 24 10 Q15 18 6 10 Z" fill="rgba(255,255,255,.85)"></path><path d="M6 10 L0 5 L2.5 10 L0 15 Z" fill="rgba(255,255,255,.85)"></path></svg>
+                    </sc-for>
+                  </div>
+                </div>
+                <div style="padding:14px 16px 16px; display:flex; flex-direction:column; flex:1;">
+                  <div style="font-family:'Fraunces',serif; font-weight:700; font-size:18px;">{{ c.name }}</div>
+                  <p style="font-size:13px; color:#5A4E7A; font-weight:500; margin:5px 0 0; line-height:1.4; flex:1;">{{ c.blurb }}</p>
+                  <div style="display:flex; align-items:center; justify-content:space-between; margin-top:14px;">
+                    <div style="font-size:12px; color:#8A82A8; font-weight:700;">{{ c.membersLabel }} members</div>
+                    <button onClick="{{ c.onClick }}" style="padding:8px 16px; border-radius:999px; font-weight:800; font-size:13px; background:var(--c-primary,#1F7A8C); color:#fff; box-shadow:0 var(--shadow-off,3px) 0 0 var(--c-primary-deep,#15616f);">Enter</button>
+                  </div>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+        </sc-if>
+
+        <!-- ========== FIND CURRENTS (filter) ========== -->
+        <sc-if value="{{ isFilter }}" hint-placeholder-val="{{ false }}">
+        <div class="fh-surface" style="max-width:900px; margin:0 auto; padding:30px 30px 90px;">
+          <div style="font-size:11px; font-weight:800; letter-spacing:.14em; text-transform:uppercase; color:#8A82A8;">Find Currents</div>
+          <h1 style="font-family:'Fraunces',serif; font-weight:900; font-size:34px; letter-spacing:-.02em; margin:8px 0 4px;">Cast, then narrow the water</h1>
+          <p style="font-size:15px; color:#5A4E7A; font-weight:500; max-width:560px; margin:0 0 20px;">Type a keyword to surface matching currents, then stack tags — each one you tap filters the catch further.</p>
+
+          <div style="display:flex; align-items:center; gap:11px; background:#fff; padding:13px 18px; border-radius:16px; border:1.5px solid rgba(43,35,64,.1); box-shadow:0 4px 14px rgba(43,35,64,.05);">
+            <span style="font-size:17px;">🔍</span>
+            <input value="{{ filterQuery }}" onInput="{{ onFilterQuery }}" placeholder="Search posts, verses, topics…" style="flex:1; border:none; outline:none; background:transparent; font-size:15px; font-weight:600;">
+          </div>
+
+          <sc-if value="{{ filterHasSelected }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex; align-items:center; gap:9px; flex-wrap:wrap; margin-top:16px;">
+              <span style="font-size:12px; font-weight:800; letter-spacing:.1em; text-transform:uppercase; color:#8A82A8;">Riding:</span>
+              <sc-for list="{{ filterSelected }}" as="t" hint-placeholder-count="2">
+                <span style="{{ t.style }}"><span>{{ t.icon }}</span><span>{{ t.label }}</span><button onClick="{{ t.onRemove }}" style="width:18px; height:18px; border-radius:50%; background:rgba(255,255,255,.3); color:#fff; font-size:12px; font-weight:800; display:grid; place-items:center; line-height:1;">×</button></span>
+              </sc-for>
+              <button onClick="{{ clearFilter }}" style="font-size:12.5px; font-weight:800; color:#8A82A8; padding:6px 12px; border-radius:999px;">Clear all</button>
+            </div>
+          </sc-if>
+
+          <div style="font-size:11px; font-weight:800; letter-spacing:.14em; text-transform:uppercase; color:#8A82A8; margin:22px 0 12px;">Available currents</div>
+          <div style="display:flex; gap:9px; flex-wrap:wrap;">
+            <sc-for list="{{ filterTagsAvailable }}" as="t" hint-placeholder-count="6">
+              <button onClick="{{ t.onClick }}" style="{{ t.style }}"><span>{{ t.icon }}</span><span>{{ t.label }}</span><span style="{{ t.countStyle }}">{{ t.count }}</span></button>
+            </sc-for>
+            <sc-if value="{{ filterNoTags }}" hint-placeholder-val="{{ false }}">
+              <div style="font-size:13.5px; color:#8A82A8; font-weight:600;">No more currents to narrow by — this is the calmest the water gets.</div>
+            </sc-if>
+          </div>
+
+          <div style="font-size:11px; font-weight:800; letter-spacing:.14em; text-transform:uppercase; color:#8A82A8; margin:26px 0 12px;">{{ filterCount }} in the catch</div>
+          <div style="display:flex; flex-direction:column; gap:14px;">
+            <sc-for list="{{ filterFeed }}" as="p" hint-placeholder-count="3">
+              <div style="background:#fff; border-radius:20px; border:1.5px solid rgba(43,35,64,.06); box-shadow:0 6px 18px rgba(43,35,64,.05); padding:18px;">
+                <div style="display:flex; align-items:center; gap:12px;">
+                  <span style="width:42px; height:42px; border-radius:50%; display:grid; place-items:center; font-size:21px; background:#FFF8EC; border:2.5px solid {{ p.uColor }};">{{ p.uAvatar }}</span>
+                  <div style="flex:1;"><div style="font-weight:800; font-size:14px;">{{ p.uName }}</div><div style="font-size:12px; color:#8A82A8; font-weight:600;">in {{ p.cEmoji }} {{ p.cName }} · {{ p.time }}</div></div>
+                </div>
+                <h3 style="font-family:'Fraunces',serif; font-weight:700; font-size:18px; margin:12px 0 0;">{{ p.title }}</h3>
+                <p style="margin:6px 0 0; font-size:14px; line-height:1.5; color:#5A4E7A; font-weight:500;">{{ p.body }}</p>
+                <div style="display:flex; gap:7px; flex-wrap:wrap; margin-top:12px;">
+                  <sc-for list="{{ p.tagList }}" as="t" hint-placeholder-count="2">
+                    <button onClick="{{ t.onClick }}" style="{{ t.style }}"><span>{{ t.icon }}</span><span>{{ t.label }}</span></button>
+                  </sc-for>
+                </div>
+              </div>
+            </sc-for>
+            <sc-if value="{{ filterEmpty }}" hint-placeholder-val="{{ false }}">
+              <div style="text-align:center; padding:40px 20px; background:#fff; border-radius:20px; border:1.5px solid rgba(43,35,64,.06);">
+                <div style="font-size:34px;">🪝</div>
+                <div style="font-weight:800; font-size:16px; margin-top:8px;">Nothing in these waters</div>
+                <div style="font-size:13.5px; color:#8A82A8; font-weight:600; margin-top:4px;">Drop a tag to widen the net, or start a post with this current.</div>
+              </div>
+            </sc-if>
+          </div>
+        </div>
+        </sc-if>
+
+        <!-- ========== CALENDAR ========== -->
+        <sc-if value="{{ isCalendar }}" hint-placeholder-val="{{ false }}">
+        <div class="fh-surface" style="max-width:1080px; margin:0 auto; padding:30px 30px 90px;">
+          <div style="font-size:11px; font-weight:800; letter-spacing:.14em; text-transform:uppercase; color:#8A82A8;">Calendar</div>
+          <h1 style="font-family:'Fraunces',serif; font-weight:900; font-size:34px; letter-spacing:-.02em; margin:8px 0 4px;">Gatherings on the water</h1>
+          <p style="font-size:15px; color:#5A4E7A; font-weight:500; max-width:560px; margin:0 0 22px;">Worship nights, doodle jams, prayer circles and more — across every community you ride.</p>
+          <div style="display:grid; grid-template-columns:1fr 320px; gap:20px; align-items:start;">
+            <!-- month grid -->
+            <div style="background:#fff; border-radius:22px; border:1.5px solid rgba(43,35,64,.06); box-shadow:0 8px 22px rgba(43,35,64,.06); padding:20px;">
+              <div style="display:flex; align-items:center; gap:12px; margin-bottom:16px;">
+                <button onClick="{{ noop }}" style="width:34px; height:34px; border-radius:10px; background:rgba(43,35,64,.05); font-size:15px; display:grid; place-items:center;">‹</button>
+                <h2 style="font-family:'Fraunces',serif; font-weight:900; font-size:24px; flex:1;">{{ calMonth }}</h2>
+                <button onClick="{{ noop }}" style="width:34px; height:34px; border-radius:10px; background:rgba(43,35,64,.05); font-size:15px; display:grid; place-items:center;">›</button>
+              </div>
+              <div style="display:grid; grid-template-columns:repeat(7,1fr); gap:6px; margin-bottom:6px;">
+                <sc-for list="{{ weekdays }}" as="w" hint-placeholder-count="7">
+                  <div style="text-align:center; font-size:11px; font-weight:800; letter-spacing:.08em; color:#8A82A8;">{{ w }}</div>
+                </sc-for>
+              </div>
+              <div style="display:flex; flex-direction:column; gap:6px;">
+                <sc-for list="{{ calWeeks }}" as="week" hint-placeholder-count="5">
+                  <div style="display:grid; grid-template-columns:repeat(7,1fr); gap:6px;">
+                    <sc-for list="{{ week }}" as="c" hint-placeholder-count="7">
+                      <div style="{{ c.cellStyle }}">
+                        <sc-if value="{{ c.blank }}" hint-placeholder-val="{{ false }}"><span></span></sc-if>
+                        <sc-if value="{{ c.date }}" hint-placeholder-val="{{ true }}">
+                          <span style="{{ c.dateStyle }}">{{ c.date }}</span>
+                          <sc-for list="{{ c.events }}" as="e" hint-placeholder-count="1">
+                            <div style="{{ e.chipStyle }}"><span>{{ e.emoji }}</span><span style="overflow:hidden; text-overflow:ellipsis;">{{ e.title }}</span></div>
+                          </sc-for>
+                        </sc-if>
+                      </div>
+                    </sc-for>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+            <!-- upcoming + RSVP -->
+            <div style="background:#fff; border-radius:22px; border:1.5px solid rgba(43,35,64,.06); box-shadow:0 8px 22px rgba(43,35,64,.06); padding:18px;">
+              <div style="font-family:'Fraunces',serif; font-weight:700; font-size:18px; margin-bottom:14px;">Upcoming</div>
+              <div style="display:flex; flex-direction:column; gap:10px;">
+                <sc-for list="{{ calRsvp }}" as="e" hint-placeholder-count="8">
+                  <div style="display:flex; align-items:center; gap:12px;">
+                    <div style="width:46px; height:46px; border-radius:13px; background:#FFFBF2; border:1.5px solid rgba(43,35,64,.08); display:grid; place-items:center; flex-shrink:0;">
+                      <div style="font-size:9px; font-weight:800; color:#8A6B00; letter-spacing:.06em;">{{ e.day }}</div>
+                      <div style="font-size:17px; font-weight:800; margin-top:-2px;">{{ e.date }}</div>
+                    </div>
+                    <div style="flex:1; min-width:0;">
+                      <div style="font-weight:800; font-size:13.5px; line-height:1.2;">{{ e.title }}</div>
+                      <div style="font-size:11.5px; color:#8A82A8; font-weight:600;">{{ e.time }} · {{ e.cName }}</div>
+                    </div>
+                    <button onClick="{{ e.onClick }}" style="{{ e.rsvpStyle }}">{{ e.rsvpLabel }}</button>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </div>
+        </div>
+        </sc-if>
+
+        <!-- ========== COMMUNITY ========== -->
+        <sc-if value="{{ isCommunity }}" hint-placeholder-val="{{ false }}">
+        <div class="fh-surface" style="max-width:1000px; margin:0 auto; padding:0 30px 90px;">
+          <sc-if value="{{ community.isNested }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex; align-items:center; gap:8px; padding:20px 4px 6px; font-size:13px; font-weight:700; flex-wrap:wrap;">
+              <button onClick="{{ community.goParent }}" style="display:inline-flex; align-items:center; gap:7px; color:#5A4E7A; white-space:nowrap;"><span style="font-size:15px;">{{ community.parentEmoji }}</span><span>{{ community.parentName }}</span></button>
+              <span style="color:#8A82A8;">›</span>
+              <span style="color:#2B2340; white-space:nowrap;">{{ community.name }}</span>
+              <span style="margin-left:6px; padding:3px 10px; border-radius:999px; background:rgba(31,122,140,.1); color:#15616F; font-size:11px; font-weight:800; white-space:nowrap;">🌊 deeper water</span>
+            </div>
+          </sc-if>
+          <div style="height:170px; border-radius:0 0 26px 26px; background:{{ community.cover }}; position:relative; display:flex; align-items:flex-end; padding:22px 26px;">
+            <div style="position:absolute; inset:0; background:linear-gradient(to top, rgba(14,58,69,.32), transparent 60%); border-radius:0 0 26px 26px;"></div>
+            <div style="position:relative; display:flex; align-items:flex-end; gap:16px; width:100%;">
+              <span style="width:74px; height:74px; border-radius:20px; background:rgba(255,255,255,.94); display:grid; place-items:center; font-size:38px; box-shadow:0 6px 16px rgba(0,0,0,.18);">{{ community.emoji }}</span>
+              <div style="flex:1; color:#fff; padding-bottom:4px;">
+                <div style="font-family:'Fraunces',serif; font-weight:900; font-size:30px; letter-spacing:-.02em; text-shadow:0 1px 8px rgba(0,0,0,.25);">{{ community.name }}</div>
+                <div style="font-size:13px; font-weight:700; opacity:.95;">{{ community.membersLabel }} members · {{ community.posts }} posts</div>
+              </div>
+              <button onClick="{{ noop }}" style="padding:11px 22px; border-radius:999px; font-weight:800; font-size:14px; background:#FFC94A; color:#2B2340; box-shadow:0 var(--shadow-off,3px) 0 0 #B9851A;">Joined ✓</button>
+            </div>
+          </div>
+          <div style="display:flex; align-items:center; gap:14px; margin:18px 4px 22px;">
+            <div style="display:flex; align-items:center; gap:9px; padding:8px 14px; border-radius:999px; background:#fff; border:1.5px solid rgba(43,35,64,.08);">
+              <span style="width:8px; height:8px; border-radius:50%; background:#4FB058;"></span>
+              <span style="font-size:13px; font-weight:700; color:#5A4E7A;">Owned by Pastor Dré · 3 admins</span>
+            </div>
+            <div style="flex:1;"></div>
+            <p style="font-size:14px; color:#5A4E7A; font-weight:600; max-width:420px; text-align:right;">{{ community.blurb }}</p>
+          </div>
+          <sc-if value="{{ community.hasChildren }}" hint-placeholder-val="{{ false }}">
+            <div style="font-size:11px; font-weight:800; letter-spacing:.14em; text-transform:uppercase; color:#8A82A8; margin:6px 4px 12px;">Harbors inside</div>
+            <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-bottom:26px;">
+              <sc-for list="{{ childCommunities }}" as="c" hint-placeholder-count="3">
+                <div style="background:#fff; border-radius:18px; border:1.5px solid rgba(43,35,64,.06); box-shadow:0 6px 18px rgba(43,35,64,.05); overflow:hidden;">
+                  <div style="height:64px; background:{{ c.cover }}; position:relative; display:flex; align-items:center; justify-content:flex-end; padding:0 12px;">
+                    <span style="position:absolute; top:10px; left:12px; width:38px; height:38px; border-radius:11px; background:rgba(255,255,255,.92); display:grid; place-items:center; font-size:20px; box-shadow:0 3px 9px rgba(0,0,0,.12);">{{ c.emoji }}</span>
+                    <div style="position:relative; display:flex; align-items:center; gap:0;">
+                      <sc-for list="{{ c.shoal }}" as="f" hint-placeholder-count="4">
+                        <svg width="18" height="11" viewBox="-5 0 32 20" style="{{ f.style }}"><path d="M6 10 Q15 2 24 10 Q15 18 6 10 Z" fill="rgba(255,255,255,.85)"></path><path d="M6 10 L0 5 L2.5 10 L0 15 Z" fill="rgba(255,255,255,.85)"></path></svg>
+                      </sc-for>
+                    </div>
+                  </div>
+                  <div style="padding:12px 14px 14px;">
+                    <div style="font-family:'Fraunces',serif; font-weight:700; font-size:16px;">{{ c.name }}</div>
+                    <p style="font-size:12.5px; color:#5A4E7A; font-weight:500; margin:4px 0 0; line-height:1.4;">{{ c.blurb }}</p>
+                    <div style="display:flex; align-items:center; justify-content:space-between; margin-top:12px;">
+                      <span style="font-size:11.5px; color:#8A82A8; font-weight:700;">{{ c.membersLabel }} members</span>
+                      <button onClick="{{ c.onClick }}" style="padding:6px 14px; border-radius:999px; font-weight:800; font-size:12.5px; background:var(--c-primary,#1F7A8C); color:#fff; box-shadow:0 var(--shadow-off,3px) 0 0 var(--c-primary-deep,#15616F);">Dive in</button>
+                    </div>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </sc-if>
+          <div style="display:flex; flex-direction:column; gap:14px;">
+            <sc-for list="{{ communityFeed }}" as="p" hint-placeholder-count="3">
+              <div style="background:#fff; border-radius:20px; border:1.5px solid rgba(43,35,64,.06); box-shadow:0 var(--shadow-off,3px) 0 0 rgba(43,35,64,.05),0 8px 22px rgba(43,35,64,.06); padding:18px;">
+                <div style="display:flex; align-items:center; gap:12px;">
+                  <span style="width:42px; height:42px; border-radius:50%; display:grid; place-items:center; font-size:21px; background:#FFF8EC; border:2.5px solid {{ p.uColor }};">{{ p.uAvatar }}</span>
+                  <div style="flex:1;"><div style="font-weight:800; font-size:14px;">{{ p.uName }}</div><div style="font-size:12px; color:#8A82A8; font-weight:600;">{{ p.time }}</div></div>
+                </div>
+                <h3 style="font-family:'Fraunces',serif; font-weight:700; font-size:18px; margin:12px 0 0;">{{ p.title }}</h3>
+                <p style="margin:6px 0 0; font-size:14px; line-height:1.5; color:#5A4E7A; font-weight:500;">{{ p.body }}</p>
+                <div style="display:flex; gap:7px; flex-wrap:wrap; margin-top:12px;">
+                  <sc-for list="{{ p.tagList }}" as="t" hint-placeholder-count="2">
+                    <button onClick="{{ t.onClick }}" style="{{ t.style }}"><span>{{ t.icon }}</span><span>{{ t.label }}</span></button>
+                  </sc-for>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+        </sc-if>
+
+        <!-- ========== PRAYER WALL ========== -->
+        <sc-if value="{{ isPrayer }}" hint-placeholder-val="{{ false }}">
+        <div class="fh-surface" style="max-width:640px; margin:0 auto; padding:34px 24px 90px;">
+          <div style="text-align:center; margin-bottom:26px;">
+            <div style="font-size:11px; font-weight:800; letter-spacing:.14em; text-transform:uppercase; color:#8A82A8;">Prayer Wall · quiet water</div>
+            <h1 style="font-family:'Fraunces',serif; font-weight:900; font-size:32px; letter-spacing:-.02em; margin:8px 0 4px;">Lift each other up</h1>
+            <p style="font-size:14.5px; color:#5A4E7A; font-weight:500;">Post a request, or tap the lamp to pray with someone today.</p>
+          </div>
+          <div style="background:#fff; border-radius:20px; border:1.5px solid rgba(43,35,64,.06); box-shadow:0 8px 22px rgba(43,35,64,.06); padding:16px; margin-bottom:18px;">
+            <input value="{{ prayerDraft }}" onInput="{{ onPrayerDraft }}" placeholder="Share a prayer request…" style="width:100%; padding:13px 16px; border:1.5px solid rgba(43,35,64,.1); border-radius:14px; background:#FFF8EC; font-size:14px; font-weight:600; outline:none;">
+            <div style="display:flex; justify-content:flex-end; margin-top:10px;"><button onClick="{{ noop }}" style="padding:9px 20px; border-radius:999px; font-weight:800; font-size:13px; background:var(--c-primary,#1F7A8C); color:#fff; box-shadow:0 var(--shadow-off,3px) 0 0 var(--c-primary-deep,#15616f);">Post request</button></div>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:12px;">
+            <sc-for list="{{ prayerView }}" as="p" hint-placeholder-count="6">
+              <div style="{{ p.cardStyle }}">
+                <div style="display:flex; align-items:center; gap:11px;">
+                  <span style="width:38px; height:38px; border-radius:50%; display:grid; place-items:center; font-size:19px; background:#FFF8EC; border:2.5px solid {{ p.uColor }};">{{ p.uAvatar }}</span>
+                  <div style="flex:1;"><div style="font-weight:800; font-size:13.5px;">{{ p.uName }}</div><div style="font-size:11.5px; color:#8A82A8; font-weight:600;">{{ p.time }} ago</div></div>
+                  <sc-if value="{{ p.answered }}" hint-placeholder-val="{{ false }}"><span style="padding:4px 11px; border-radius:999px; background:rgba(79,176,88,.16); color:#2F7A3A; font-size:11px; font-weight:800;">✓ Answered</span></sc-if>
+                </div>
+                <p style="margin:11px 0 0; font-size:15px; line-height:1.5; color:#2B2340; font-weight:500;">{{ p.text }}</p>
+                <div style="display:flex; align-items:center; gap:12px; margin-top:14px;">
+                  <button onClick="{{ p.onClick }}" style="{{ p.btnStyle }}"><span>🕯️</span><span>{{ p.btnLabel }}</span></button>
+                  <div style="font-size:12.5px; color:#8A82A8; font-weight:700;">{{ p.count }} praying</div>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+        </sc-if>
+
+        <!-- ========== PROFILE ========== -->
+        <sc-if value="{{ isProfile }}" hint-placeholder-val="{{ false }}">
+        <div class="fh-surface" style="max-width:900px; margin:0 auto; padding:30px 30px 90px;">
+          <div style="background:#fff; border-radius:24px; border:1.5px solid rgba(43,35,64,.06); box-shadow:0 8px 22px rgba(43,35,64,.06); padding:26px; display:flex; align-items:center; gap:22px;">
+            <span style="width:96px; height:96px; border-radius:50%; display:grid; place-items:center; font-size:48px; background:#EAF6F4; border:4px solid var(--c-primary,#1F7A8C);">{{ me.avatar }}</span>
+            <div style="flex:1;">
+              <div style="font-family:'Fraunces',serif; font-weight:900; font-size:30px; letter-spacing:-.02em;">{{ me.name }}</div>
+              <div style="font-size:14px; color:#5A4E7A; font-weight:600; margin-top:2px;">Level {{ me.level }} · Worship Warriors & 5 more</div>
+              <div style="display:flex; align-items:center; gap:10px; margin-top:14px;">
+                <div style="position:relative; height:26px; display:flex; align-items:center;">
+                  <sc-for list="{{ connShoal }}" as="f" hint-placeholder-count="9">
+                    <svg width="22" height="14" viewBox="-5 0 32 20" style="{{ f.style }}"><path d="M6 10 Q15 2 24 10 Q15 18 6 10 Z" fill="currentColor"></path><path d="M6 10 L0 5 L2.5 10 L0 15 Z" fill="currentColor"></path></svg>
+                  </sc-for>
+                </div>
+                <div style="font-size:13px; font-weight:700; color:#5A4E7A;">48 in your shoal</div>
+              </div>
+            </div>
+            <button onClick="{{ noop }}" style="padding:11px 22px; border-radius:999px; font-weight:800; font-size:14px; background:var(--c-primary,#1F7A8C); color:#fff; box-shadow:0 var(--shadow-off,3px) 0 0 var(--c-primary-deep,#15616f);">Edit profile</button>
+          </div>
+          <div style="display:grid; grid-template-columns:1fr 300px; gap:18px; margin-top:18px; align-items:start;">
+            <div style="display:flex; flex-direction:column; gap:14px;">
+              <sc-for list="{{ myPosts }}" as="p" hint-placeholder-count="2">
+                <div style="background:#fff; border-radius:20px; border:1.5px solid rgba(43,35,64,.06); box-shadow:0 8px 22px rgba(43,35,64,.06); padding:18px;">
+                  <div style="font-size:12px; color:#8A82A8; font-weight:600;">in {{ p.cEmoji }} {{ p.cName }} · {{ p.time }}</div>
+                  <h3 style="font-family:'Fraunces',serif; font-weight:700; font-size:18px; margin:8px 0 0;">{{ p.title }}</h3>
+                  <p style="margin:6px 0 0; font-size:14px; line-height:1.5; color:#5A4E7A; font-weight:500;">{{ p.body }}</p>
+                </div>
+              </sc-for>
+            </div>
+            <div style="background:#fff; border-radius:20px; border:1.5px solid rgba(43,35,64,.06); box-shadow:0 8px 22px rgba(43,35,64,.06); padding:16px;">
+              <div style="font-family:'Fraunces',serif; font-weight:700; font-size:17px; margin-bottom:14px;">Badges</div>
+              <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:12px;">
+                <sc-for list="{{ badges }}" as="b" hint-placeholder-count="8">
+                  <div style="{{ b.style }}" title="{{ b.name }}">{{ b.icon }}</div>
+                </sc-for>
+              </div>
+            </div>
+          </div>
+        </div>
+        </sc-if>
+
+        <!-- ========== FAMILY & SAFETY (Skool-mode parent zone) ========== -->
+        <sc-if value="{{ isAdmin }}" hint-placeholder-val="{{ false }}">
+        <div style="max-width:840px; margin:0 auto; padding:40px 32px 90px; font-family:'Hanken Grotesk',sans-serif;">
+          <div style="display:inline-flex; align-items:center; gap:8px; padding:5px 12px; border-radius:7px; background:#F1F0EC; border:1px solid #E7E5E1; font-size:12px; font-weight:700; color:#6E6A7A; letter-spacing:.02em;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6E6A7A" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.4-3 8-7 10-4-2-7-5.6-7-10V6z"></path></svg>
+            Parent &amp; admin
+          </div>
+          <h1 style="font-family:'Hanken Grotesk',sans-serif; font-weight:800; font-size:30px; letter-spacing:-.02em; color:#1A1A1A; margin:16px 0 6px;">Family &amp; safety</h1>
+          <p style="font-size:15px; color:#6E6A7A; font-weight:500; max-width:560px; margin:0;">Manage who's in your family, review what gets shared, and keep watch on safety — calm and in one place.</p>
+
+          <!-- profiles -->
+          <div style="font-size:11px; font-weight:800; letter-spacing:.1em; text-transform:uppercase; color:#9A958C; margin:34px 0 12px;">Profiles</div>
+          <div style="background:#fff; border:1px solid #E7E5E1; border-radius:12px; overflow:hidden;">
+            <sc-for list="{{ profilesAdmin }}" as="p" hint-placeholder-count="3">
+              <div style="display:flex; align-items:center; gap:14px; padding:16px 20px; border-bottom:1px solid #F1F0EC;">
+                <span style="width:40px; height:40px; border-radius:50%; display:grid; place-items:center; font-size:20px; background:#F4F3EF; border:1px solid #E7E5E1; flex-shrink:0;">{{ p.avatar }}</span>
+                <div style="flex:1; min-width:0;">
+                  <div style="font-weight:700; font-size:15px; color:#1A1A1A;">{{ p.name }}</div>
+                  <div style="font-size:13px; color:#9A958C; font-weight:500;">{{ p.sub }}</div>
+                </div>
+                <div style="display:flex; align-items:center; gap:9px;">
+                  <span style="font-size:13px; color:#6E6A7A; font-weight:600;">Posting</span>
+                  <button onClick="{{ p.onToggle }}" style="{{ p.switchStyle }}"><span style="{{ p.knobStyle }}"></span></button>
+                </div>
+                <button onClick="{{ noop }}" style="font-size:13px; font-weight:700; color:#1B2A2E; padding:8px 14px; border-radius:8px; border:1px solid #E7E5E1; background:#fff;">Manage</button>
+              </div>
+            </sc-for>
+            <button onClick="{{ noop }}" style="display:flex; align-items:center; gap:9px; width:100%; padding:15px 20px; font-size:14px; font-weight:700; color:#1B2A2E; background:#fff; border:none; text-align:left;"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"></path></svg>Add a child</button>
+          </div>
+
+          <!-- pending media -->
+          <div style="display:flex; align-items:center; justify-content:space-between; margin:34px 0 12px;">
+            <div style="font-size:11px; font-weight:800; letter-spacing:.1em; text-transform:uppercase; color:#9A958C;">Photos waiting for you</div>
+            <span style="font-size:12px; font-weight:700; color:#B7791F; background:#FBF1DF; border:1px solid #F0E2C6; padding:3px 10px; border-radius:7px;">{{ pendingPending }} pending</span>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:10px;">
+            <sc-for list="{{ pendingView }}" as="m" hint-placeholder-count="3">
+              <div style="display:flex; align-items:center; gap:14px; padding:14px; background:#fff; border:1px solid #E7E5E1; border-radius:12px;">
+                <div style="width:54px; height:54px; border-radius:9px; background:repeating-linear-gradient(135deg,#F1F0EC,#F1F0EC 6px,#EAE8E2 6px,#EAE8E2 12px); border:1px solid #E7E5E1; display:grid; place-items:center; flex-shrink:0;">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#B8B3A8" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7.5h3L8.5 5.5h7L17 7.5h3v11H4zM12 11a3 3 0 100 6 3 3 0 000-6z"></path></svg>
+                </div>
+                <div style="flex:1; min-width:0;">
+                  <div style="font-weight:700; font-size:14.5px; color:#1A1A1A;">{{ m.kind }} from {{ m.child }}</div>
+                  <div style="font-size:13px; color:#9A958C; font-weight:500;">{{ m.where }}</div>
+                  <div style="font-family:'Spline Sans Mono',monospace; font-size:11.5px; color:#B8B3A8; margin-top:3px;">{{ m.id }} · {{ m.time }}</div>
+                </div>
+                <sc-if value="{{ m.resolved }}" hint-placeholder-val="{{ false }}">
+                  <span style="{{ m.statusStyle }}">{{ m.statusLabel }}</span>
+                </sc-if>
+                <sc-if value="{{ m.notResolved }}" hint-placeholder-val="{{ true }}">
+                  <div style="display:flex; gap:8px;">
+                    <button onClick="{{ m.decline }}" style="font-size:13px; font-weight:700; color:#6E6A7A; padding:8px 15px; border-radius:8px; border:1px solid #E7E5E1; background:#fff;">Decline</button>
+                    <button onClick="{{ m.approve }}" style="font-size:13px; font-weight:700; color:#fff; padding:8px 16px; border-radius:8px; border:none; background:#1B2A2E;">Approve</button>
+                  </div>
+                </sc-if>
+              </div>
+            </sc-for>
+            <sc-if value="{{ pendingEmpty }}" hint-placeholder-val="{{ false }}">
+              <div style="padding:30px; text-align:center; background:#fff; border:1px solid #E7E5E1; border-radius:12px;">
+                <div style="font-weight:700; font-size:15px; color:#1A1A1A;">You're all caught up</div>
+                <div style="font-size:13.5px; color:#9A958C; font-weight:500; margin-top:3px;">Nothing waiting for review.</div>
+              </div>
+            </sc-if>
+          </div>
+
+          <!-- safety -->
+          <div style="font-size:11px; font-weight:800; letter-spacing:.1em; text-transform:uppercase; color:#9A958C; margin:34px 0 12px;">Safety</div>
+          <div style="display:flex; align-items:center; gap:14px; padding:18px 20px; background:#fff; border:1px solid #E7E5E1; border-radius:12px;">
+            <span style="width:40px; height:40px; border-radius:50%; background:#E8F3EC; display:grid; place-items:center; flex-shrink:0;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2E7D52" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4 4 10-10"></path></svg></span>
+            <div style="flex:1;">
+              <div style="font-weight:700; font-size:15px; color:#1A1A1A;">No incidents — all clear</div>
+              <div style="font-size:13.5px; color:#9A958C; font-weight:500;">We'll alert you here if anything ever needs your attention.</div>
+            </div>
+          </div>
+        </div>
+        </sc-if>
+
+        <!-- ========== MESSAGES (depth 3 harbor) ========== -->
+        <sc-if value="{{ isChat }}" hint-placeholder-val="{{ false }}">
+        <div class="fh-surface" style="height:calc(100vh - 71px); display:grid; grid-template-columns:300px 1fr;">
+          <div style="border-right:1px solid rgba(255,255,255,.1); padding:20px 14px; overflow-y:auto;">
+            <div style="display:flex; align-items:center; gap:9px; padding:0 8px 16px;">
+              <h2 style="font-family:'Fraunces',serif; font-weight:900; font-size:22px; color:#EAF6F4;">Messages</h2>
+              <span style="font-size:11px; font-weight:700; color:#7FC9D6; padding:3px 9px; border-radius:999px; background:rgba(127,201,214,.14);">deep water</span>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:4px;">
+              <sc-for list="{{ dmThreads }}" as="t" hint-placeholder-count="3">
+                <button onClick="{{ t.onClick }}" style="{{ t.style }}">
+                  <span style="position:relative; width:44px; height:44px; border-radius:50%; display:grid; place-items:center; font-size:22px; background:rgba(255,255,255,.1); flex-shrink:0;">{{ t.avatar }}<sc-if value="{{ t.online }}" hint-placeholder-val="{{ false }}"><span style="position:absolute; bottom:1px; right:1px; width:11px; height:11px; border-radius:50%; background:#7DCE82; border:2px solid #0E3A45;"></span></sc-if></span>
+                  <div style="flex:1; min-width:0; text-align:left;">
+                    <div style="font-weight:800; font-size:14px; color:#EAF6F4;">{{ t.name }}</div>
+                    <div style="font-size:12px; color:#9FC4CC; font-weight:500; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{ t.preview }}</div>
+                  </div>
+                </button>
+              </sc-for>
+            </div>
+          </div>
+          <div style="display:flex; flex-direction:column; min-width:0;">
+            <div style="padding:16px 24px; border-bottom:1px solid rgba(255,255,255,.1); display:flex; align-items:center; gap:12px;">
+              <span style="width:40px; height:40px; border-radius:50%; display:grid; place-items:center; font-size:20px; background:rgba(255,255,255,.1);">{{ activeThread.avatar }}</span>
+              <div><div style="font-weight:800; font-size:15px; color:#EAF6F4;">{{ activeThread.name }}</div><div style="font-size:12px; color:#7FC9D6; font-weight:600;">{{ activeThread.status }}</div></div>
+            </div>
+            <div style="flex:1; overflow-y:auto; padding:24px; display:flex; flex-direction:column; gap:12px;">
+              <sc-for list="{{ activeMessages }}" as="m" hint-placeholder-count="4">
+                <div style="{{ m.rowStyle }}">
+                  <sc-if value="{{ m.showName }}" hint-placeholder-val="{{ false }}"><div style="{{ m.nameStyle }}">{{ m.name }}</div></sc-if>
+                  <div style="{{ m.bubbleStyle }}">{{ m.text }}</div>
+                </div>
+              </sc-for>
+            </div>
+            <div style="padding:16px 24px; border-top:1px solid rgba(255,255,255,.1); display:flex; gap:10px; align-items:center;">
+              <input value="{{ dmDraft }}" onInput="{{ onDmDraft }}" onKeyDown="{{ onDmKey }}" placeholder="Message — stays between you" style="flex:1; padding:12px 18px; border-radius:999px; border:1.5px solid rgba(255,255,255,.16); background:rgba(255,255,255,.07); color:#EAF6F4; font-size:14px; font-weight:500; outline:none;">
+              <button onClick="{{ sendDm }}" style="width:44px; height:44px; border-radius:50%; background:#7FC9D6; color:#0E3A45; font-size:18px; font-weight:800; display:grid; place-items:center;">↑</button>
+            </div>
+          </div>
+        </div>
+        </sc-if>
+
+        <!-- ========== TAG / SCRIPTURE CURRENT ========== -->
+        <sc-if value="{{ isTag }}" hint-placeholder-val="{{ false }}">
+        <div class="fh-surface" style="max-width:760px; margin:0 auto; padding:30px 24px 90px;">
+          <button onClick="{{ goHome }}" style="font-size:13px; font-weight:700; color:#8A82A8; margin-bottom:16px;">← back to the harbor</button>
+          <div style="{{ tagHeaderStyle }}">
+            <div style="font-size:11px; font-weight:800; letter-spacing:.14em; text-transform:uppercase; color:{{ tagEyebrowColor }};">{{ tagKind }} current</div>
+            <div style="font-family:'Fraunces',serif; font-weight:900; font-size:30px; letter-spacing:-.02em; margin-top:6px; color:#2B2340;">{{ tagTitle }}</div>
+            <sc-if value="{{ tagIsScripture }}" hint-placeholder-val="{{ false }}">
+              <div style="font-family:'Fraunces',serif; font-style:italic; font-weight:500; font-size:17px; color:#5A4E7A; margin-top:8px; line-height:1.4;">{{ tagVerse }}</div>
+            </sc-if>
+            <div style="display:flex; align-items:center; gap:12px; margin-top:16px;">
+              <button onClick="{{ toggleFollowTag }}" style="{{ followBtnStyle }}">{{ followBtnLabel }}</button>
+              <div style="font-size:13px; color:#8A82A8; font-weight:700;">flows across {{ tagReach }} communities</div>
+            </div>
+          </div>
+          <div style="font-size:11px; font-weight:800; letter-spacing:.14em; text-transform:uppercase; color:#8A82A8; margin:24px 0 12px;">Riding this current</div>
+          <div style="display:flex; flex-direction:column; gap:14px;">
+            <sc-for list="{{ tagFeed }}" as="p" hint-placeholder-count="3">
+              <div style="background:#fff; border-radius:20px; border:1.5px solid rgba(43,35,64,.06); box-shadow:0 8px 22px rgba(43,35,64,.06); padding:18px;">
+                <div style="display:flex; align-items:center; gap:12px;">
+                  <span style="width:42px; height:42px; border-radius:50%; display:grid; place-items:center; font-size:21px; background:#FFF8EC; border:2.5px solid {{ p.uColor }};">{{ p.uAvatar }}</span>
+                  <div style="flex:1;"><div style="font-weight:800; font-size:14px;">{{ p.uName }}</div><div style="font-size:12px; color:#8A82A8; font-weight:600;">in {{ p.cEmoji }} {{ p.cName }} · {{ p.time }}</div></div>
+                </div>
+                <h3 style="font-family:'Fraunces',serif; font-weight:700; font-size:18px; margin:12px 0 0;">{{ p.title }}</h3>
+                <p style="margin:6px 0 0; font-size:14px; line-height:1.5; color:#5A4E7A; font-weight:500;">{{ p.body }}</p>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+        </sc-if>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ GABRIEL FLOAT ============ -->
+  <sc-if value="{{ showGabriel }}" hint-placeholder-val="{{ true }}">
+  <button onClick="{{ noop }}" style="position:fixed; bottom:22px; right:22px; z-index:40; display:flex; align-items:center; gap:11px; background:#fff; padding:9px 16px 9px 9px; border-radius:999px; box-shadow:0 10px 30px rgba(43,35,64,.18); border:1.5px solid rgba(43,35,64,.08);">
+    <svg width="40" height="40" viewBox="0 0 100 100"><ellipse cx="22" cy="58" rx="16" ry="20" fill="#fff" stroke="#E8C7F0" stroke-width="2"></ellipse><ellipse cx="78" cy="58" rx="16" ry="20" fill="#fff" stroke="#E8C7F0" stroke-width="2"></ellipse><path d="M30 78 q0 -18 20 -18 q20 0 20 18 v8 h-40 z" fill="#FFF1D6" stroke="#2B2340" stroke-width="2"></path><circle cx="50" cy="48" r="17" fill="#FFE0C2" stroke="#2B2340" stroke-width="2"></circle><circle cx="42" cy="50" r="2.5" fill="#2B2340"></circle><circle cx="58" cy="50" r="2.5" fill="#2B2340"></circle><path d="M42 58 q8 6 16 0" stroke="#2B2340" stroke-width="2.5" fill="none" stroke-linecap="round"></path><ellipse cx="50" cy="27" rx="15" ry="3.6" fill="none" stroke="#FFC94A" stroke-width="3"></ellipse></svg>
+    <div style="text-align:left;">
+      <div style="font-weight:800; font-size:13px;">Gabriel</div>
+      <div style="font-family:'Caveat',cursive; font-size:15px; font-weight:700; color:#8A6B00; line-height:1;">here if you need me</div>
+    </div>
+  </button>
+  </sc-if>
+
+  <!-- ============ PIN GATE (profile switch) ============ -->
+  <sc-if value="{{ pinOpen }}" hint-placeholder-val="{{ false }}">
+  <div onClick="{{ closePin }}" style="position:fixed; inset:0; z-index:70; background:rgba(14,58,69,.5); backdrop-filter:blur(8px); display:flex; align-items:center; justify-content:center; padding:24px;">
+    <div onClick="{{ stop }}" style="width:100%; max-width:340px; background:#fff; border-radius:24px; box-shadow:0 30px 80px rgba(14,58,69,.4); padding:28px 26px; text-align:center;">
+      <span style="display:inline-grid; place-items:center; width:66px; height:66px; border-radius:50%; font-size:34px; background:#EAF6F4; border:3px solid var(--c-primary,#1F7A8C);">{{ pinProfile.avatar }}</span>
+      <div style="font-family:'Fraunces',serif; font-weight:900; font-size:22px; margin-top:14px;">Enter {{ pinProfile.name }}'s PIN</div>
+      <div style="font-size:13px; color:#8A82A8; font-weight:600; margin-top:4px;">Keeps each profile safe in the harbor.</div>
+      <div style="display:flex; justify-content:center; gap:14px; margin:22px 0 6px;">
+        <sc-for list="{{ pinDots }}" as="d" hint-placeholder-count="4">
+          <span style="{{ d.style }}"></span>
+        </sc-for>
+      </div>
+      <div style="height:18px; font-size:12.5px; font-weight:700; color:#E85C47;"><sc-if value="{{ pinError }}" hint-placeholder-val="{{ false }}">Wrong PIN — try again</sc-if></div>
+      <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-top:8px;">
+        <sc-for list="{{ pinKeys }}" as="k" hint-placeholder-count="12">
+          <button onClick="{{ k.onClick }}" style="{{ k.style }}">{{ k.label }}</button>
+        </sc-for>
+      </div>
+      <button onClick="{{ closePin }}" style="margin-top:14px; font-size:13px; font-weight:800; color:#8A82A8;">Cancel</button>
+    </div>
+  </div>
+  </sc-if>
+
+  <!-- ============ THE TIDE (command palette) ============ -->
+  <sc-if value="{{ paletteOpen }}" hint-placeholder-val="{{ false }}">
+  <div onClick="{{ closePalette }}" style="position:fixed; inset:0; z-index:60; background:radial-gradient(120% 90% at 50% 0%, rgba(31,122,140,.42), rgba(14,58,69,.5)); backdrop-filter:blur(8px); display:flex; align-items:flex-start; justify-content:center; padding-top:11vh;">
+    <div onClick="{{ stop }}" class="fh-surface" style="width:100%; max-width:640px; background:#fff; border-radius:22px; box-shadow:0 30px 80px rgba(14,58,69,.4); overflow:hidden;">
+      <div style="display:flex; align-items:center; gap:13px; padding:18px 22px; border-bottom:1px solid rgba(43,35,64,.08);">
+        <span style="font-size:19px;">🔍</span>
+        <input ref="{{ paletteRef }}" value="{{ query }}" onInput="{{ onQuery }}" onKeyDown="{{ onPaletteKey }}" placeholder="Cast into the water…" style="flex:1; border:none; outline:none; background:transparent; font-size:18px; font-weight:600; color:#2B2340;">
+        <span style="font-family:'Spline Sans Mono',monospace; font-size:11px; font-weight:600; color:#8A82A8; padding:4px 9px; border-radius:8px; background:#FFF8EC;">esc</span>
+      </div>
+      <div style="display:flex; gap:6px; padding:12px 18px; overflow-x:auto; border-bottom:1px solid rgba(43,35,64,.06);">
+        <sc-for list="{{ facets }}" as="f" hint-placeholder-count="9">
+          <button onClick="{{ f.onClick }}" style="{{ f.style }}">{{ f.label }}</button>
+        </sc-for>
+      </div>
+      <sc-if value="{{ hasQuery }}" hint-placeholder-val="{{ false }}">
+        <div style="padding:8px 18px; font-size:11px; font-weight:800; letter-spacing:.1em; text-transform:uppercase; color:#8A82A8;">{{ resultsLabel }}</div>
+      </sc-if>
+      <sc-if value="{{ noQuery }}" hint-placeholder-val="{{ true }}">
+        <div style="padding:8px 18px; font-size:11px; font-weight:800; letter-spacing:.1em; text-transform:uppercase; color:#8A82A8;">Suggested currents</div>
+      </sc-if>
+      <div style="max-height:46vh; overflow-y:auto; padding:4px 8px 10px;">
+        <sc-for list="{{ paletteResults }}" as="r" hint-placeholder-count="6">
+          <button onClick="{{ r.onClick }}" onMouseEnter="{{ r.onHover }}" style="{{ r.style }}">
+            <span style="{{ r.iconStyle }}">{{ r.icon }}</span>
+            <div style="flex:1; min-width:0; text-align:left;">
+              <div style="font-weight:700; font-size:14.5px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{ r.title }}</div>
+              <div style="font-size:12px; color:#8A82A8; font-weight:600;">{{ r.sub }}</div>
+            </div>
+            <span style="{{ r.tagStyle }}">{{ r.type }}</span>
+          </button>
+        </sc-for>
+        <sc-if value="{{ emptyResults }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:30px 18px; text-align:center;">
+            <div style="font-size:32px;">🪝</div>
+            <div style="font-weight:800; font-size:15px; margin-top:8px;">Nothing in these waters yet</div>
+            <div style="font-size:13px; color:#8A82A8; font-weight:600; margin-top:4px;">Try a different current, or start one.</div>
+          </div>
+        </sc-if>
+      </div>
+      <div style="display:flex; align-items:center; gap:16px; padding:11px 20px; border-top:1px solid rgba(43,35,64,.06); font-size:11.5px; color:#8A82A8; font-weight:700;">
+        <span style="font-family:'Spline Sans Mono',monospace;">↑↓</span> navigate
+        <span style="font-family:'Spline Sans Mono',monospace;">↵</span> open
+        <span style="flex:1;"></span>
+        <span>only shows water you're allowed to swim</span>
+      </div>
+    </div>
+  </div>
+  </sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:900},&quot;accent&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;default&quot;:&quot;#1F7A8C&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;options&quot;:[&quot;#1F7A8C&quot;,&quot;#FF7E6B&quot;,&quot;#E8A825&quot;]},&quot;showGabriel&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;},&quot;reduceMotion&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;}}">
+class Component extends DCLogic {
+  state = {
+    route: { page: "home" },
+    band: "teen",
+    paletteOpen: false,
+    query: "",
+    facet: "All",
+    pIndex: 0,
+    reacted: {},
+    prayed: {},
+    followed: ["#worship", "Psalm 23", "#gratitude"],
+    filter: "For You",
+    composer: "Wrote a new worship song for Friday night — it leans on Psalm 96 🎶",
+    composerTags: [],
+    composerEdited: false,
+    tagsOpen: false,
+    newTag: "",
+    prayerDraft: "",
+    dmThread: 0,
+    dmExtra: { 0: [], 1: [], 2: [] },
+    dmDraft: "",
+    filterQuery: "",
+    filterTags: [],
+    visMode: "local",
+    visSelected: ["worship", "bible"],
+    visOpen: false,
+    navCollapsed: false,
+    profileIdx: 0,
+    bellOpen: false,
+    menuOpen: false,
+    pinFor: null,
+    pinEntry: "",
+    pinError: false,
+    mediaStatus: {},
+    posting: {},
+    rsvp: {},
+  };
+
+  paletteRef = React.createRef();
+
+  // ---------- static data ----------
+  COLORS = { tide: "#1F7A8C", coral: "#FF7E6B", gold: "#E8A825", reed: "#4FB058", shallows: "#7FC9D6", grape: "#9E7BC4" };
+  BANDS = {
+    kid:   { primary: "#FF7E6B", deep: "#E85C47", radius: 24, radiusLg: 30, shadow: 4, weight: 700, btnShadow: "0 4px 0 0 var(--c-primary-deep,#E85C47)", cardShadow: "0 4px 0 0 rgba(43,35,64,.08), 0 12px 26px rgba(43,35,64,.10)" },
+    teen:  { primary: "#1F7A8C", deep: "#15616F", radius: 12, radiusLg: 16, shadow: 0, weight: 600, btnShadow: "0 1px 2px rgba(43,35,64,.16)", cardShadow: "0 1px 2px rgba(43,35,64,.04), 0 6px 16px rgba(43,35,64,.05)" },
+    adult: { primary: "#15616F", deep: "#0E3A45", radius: 9,  radiusLg: 13, shadow: 0, weight: 500, btnShadow: "0 6px 18px rgba(14,58,69,.22)", cardShadow: "0 10px 26px rgba(43,35,64,.10)" },
+  };
+  BOOKS = ["Genesis","Exodus","Leviticus","Numbers","Deuteronomy","Psalm","Psalms","Proverbs","Isaiah","Jeremiah","Matthew","Mark","Luke","John","Acts","Romans","Corinthians","Galatians","Ephesians","Philippians","Colossians","Daniel","Revelation","James","Hebrews"];
+  FEELINGS = ["gratitude","lament","advent","hope","joy","grief","peace","answered","wonder","family"];
+  SYNONYMS = { wrshp: "worship", pray: "prayer", art: "art", song: "worship", bible: "scripture", verse: "scripture" };
+
+  profiles = [
+    { name: "Jordan", avatar: "🦁", level: 14, local: "worship", band: "teen", sub: "You · 13–17" },
+    { name: "Ava", avatar: "🐰", level: 5, local: "bible", band: "kid", sub: "Kid · under 13" },
+    { name: "Pat", avatar: "🦢", level: 1, local: "church", band: "adult", sub: "Parent · admin" },
+  ];
+  pendingMedia = [
+    { id: "med_8f2a91", child: "Ava", avatar: "🐰", kind: "Photo", where: "Art Angels", time: "9:14 AM" },
+    { id: "med_3c77d0", child: "Ava", avatar: "🐰", kind: "Doodle", where: "Doodle Garden", time: "Yesterday" },
+    { id: "med_5b1e44", child: "Jordan", avatar: "🦁", kind: "Photo", where: "Worship Warriors", time: "2 days ago" },
+  ];
+  notifs = [
+    { icon: "⭐", title: "Scripture Star earned", body: "You memorized 5 verses — Bookworm is next.", time: "2m", color: "#E8A825", unread: true },
+    { icon: "🙏", title: "Grace asked for prayer", body: "Tap to pray for her grandma's surgery.", time: "1h", color: "#FF7E6B", unread: true },
+    { icon: "🎨", title: "Ezra mentioned you", body: "in the Garden of Eden group doodle.", time: "3h", color: "#9E7BC4", unread: true },
+    { icon: "😇", title: "Gabriel summarized Worship Warriors", body: "Here's what you missed this week.", time: "1d", color: "#1F7A8C", unread: false },
+  ];
+
+  communities = [
+    { id: "church", name: "Grace Harbor Church", emoji: "⛪", color: "tide", members: 1240, posts: 980, blurb: "One church family — with little harbors inside for every group.", cover: "#2C6E7A" },
+    { id: "bible",   name: "Bible Buddies",    emoji: "📖", color: "gold",     members: 2840, posts: 1842, blurb: "Stories, verses & wonder from the Word.",      cover: "#B0843A" },
+    { id: "art",     name: "Art Angels",       emoji: "🎨", color: "coral",    members: 1993, posts: 3211, blurb: "Doodle, paint & share God-given creativity.",   cover: "#C26551" },
+    { id: "worship", name: "Worship Warriors", emoji: "🎤", color: "grape",    members: 1520, posts: 812,  blurb: "Songs, hymns, and joyful noises.",              cover: "#7B6BA6" },
+    { id: "science", name: "Creation Explorers", emoji: "🔭", color: "shallows", members: 1106, posts: 644, blurb: "Discover how wonderfully we are made.",         cover: "#4F94A0" },
+    { id: "home",    name: "Homeschool Hangout", emoji: "🏠", color: "reed",   members: 3210, posts: 5020, blurb: "Study buddies & school-day cheer.",             cover: "#5C9866" },
+    { id: "prayer",  name: "Prayer Pals",      emoji: "🙏", color: "tide",     members: 2010, posts: 1330, blurb: "Lift each other up every single day.",          cover: "#2F7886" },
+    { id: "code",    name: "Code for Christ",  emoji: "💻", color: "tide",     members: 612,  posts: 288,  blurb: "Build things with love & logic.",               cover: "#3C7E8C" },
+    { id: "pets",    name: "Pet Parables",     emoji: "🐶", color: "gold",     members: 980,  posts: 2100, blurb: "Furry, feathered & fishy friends.",             cover: "#BE914A" },
+    { id: "book",    name: "Book Nook",        emoji: "📚", color: "shallows", members: 872,  posts: 442,  blurb: "Stories, reviews & reading streaks.",           cover: "#5E94A0" },
+    { id: "ch-youth",   name: "Youth Group",   emoji: "🔥", color: "coral", members: 212, posts: 540, blurb: "Middle & high schoolers of Grace Harbor.", cover: "#C26551", parent: "church" },
+    { id: "ch-worship", name: "Worship Team",  emoji: "🎶", color: "grape", members: 48,  posts: 210, blurb: "The folks who lead Sunday's sound.",       cover: "#7B6BA6", parent: "church" },
+    { id: "ch-groups",  name: "Small Groups",  emoji: "🫂", color: "reed",  members: 320, posts: 430, blurb: "Midweek circles that meet in homes.",      cover: "#5C9866", parent: "church" },
+  ];
+
+  users = [
+    { name: "Maya", avatar: "🦊", color: "coral" },{ name: "Caleb", avatar: "🐼", color: "tide" },
+    { name: "Ezra", avatar: "🐻", color: "reed" },{ name: "Lily", avatar: "🦄", color: "grape" },
+    { name: "Noah", avatar: "🐯", color: "tide" },{ name: "Grace", avatar: "🐰", color: "coral" },
+    { name: "Asher", avatar: "🦉", color: "shallows" },{ name: "Hannah", avatar: "🐥", color: "gold" },
+    { name: "Silas", avatar: "🐙", color: "grape" },{ name: "Ivy", avatar: "🦋", color: "shallows" },
+    { name: "Levi", avatar: "🐵", color: "reed" },{ name: "Zoe", avatar: "🐢", color: "tide" },
+    { name: "Micah", avatar: "🐸", color: "reed" },{ name: "Naomi", avatar: "🦒", color: "gold" },
+    { name: "Eli", avatar: "🐳", color: "tide" },{ name: "Ada", avatar: "🐝", color: "coral" },
+  ];
+
+  feed = [
+    { id: "p1", c: "bible", u: 2, time: "2m", title: "Built Noah's Ark in LEGO", body: "Took me three days but every animal is in pairs. Thinking Daniel in the lion's den next — who's in for a build-along?", react: { heart: 142, amen: 31, praise: 24, wow: 38 }, comments: 14, pinned: true, image: "ark", tags: ["#Genesis 6:14", "#creativity"], vis: ["bible", "book", "home"] },
+    { id: "p2", c: "prayer", u: 5, time: "18m", title: "Please pray for my grandma", body: "She's going into surgery tomorrow morning. I know God's got her but I'm a little scared. Would you all pray? 🙏", react: { amen: 86, heart: 54, praise: 4, wow: 0 }, comments: 31, angelNote: "I lit a candle for Grace's grandma.", tags: ["#prayer", "#family"] },
+    { id: "p3", c: "art", u: 8, time: "1h", title: "Rainbow promise doodle", body: "Made this in the group canvas with Ezra and Ada today. Genesis 9 hits different when you draw it.", react: { heart: 77, wow: 22, praise: 12, amen: 3 }, comments: 9, image: "rainbow", tags: ["#Genesis 9", "#art"], vis: ["art", "bible"] },
+    { id: "p4", c: "science", u: 1, time: "3h", title: "Honeybees do a waggle dance", body: "They literally dance to tell friends where the flowers are. God made tiny engineers. Wrote a little report on it.", react: { wow: 41, heart: 28, amen: 5, praise: 8 }, comments: 6, tags: ["#creation", "#Psalm 139:14"] },
+    { id: "p5", c: "worship", u: 13, time: "5h", title: "Wrote my first worship song", body: "It's called 'Small and Loved'. Only 12 lines. Can I sing it at Friday night?", react: { praise: 55, amen: 31, heart: 88, wow: 9 }, comments: 41, tags: ["#worship", "#Psalm 96"], vis: "everyone" },
+    { id: "p6", c: "code", u: 11, time: "8h", title: "Made a verse-of-the-day site", body: "Uses a free API and my mom approved the verse list. My first real project and it actually works!", react: { wow: 30, heart: 42, praise: 19, amen: 5 }, comments: 24, tags: ["#Psalm 119:105", "#code"] },
+    { id: "p7", c: "prayer", u: 7, time: "1d", title: "Prayed and it happened 💛", body: "The thing I posted about last week? Done. God showed up. Thank you to everyone who prayed with me.", react: { heart: 90, amen: 55, praise: 31, wow: 7 }, comments: 22, answered: true, tags: ["#gratitude", "#answered"] },
+  ];
+
+  prayers = [
+    { id: "pr1", u: 5, time: "18m", text: "My grandma's surgery is tomorrow morning. Praying for steady hands and peace.", prayers: 34 },
+    { id: "pr2", u: 1, time: "2h", text: "Please pray my dad finds a new job — he's been looking for three months.", prayers: 57 },
+    { id: "pr3", u: 9, time: "5h", text: "Starting a new school next week. Pray I make a real friend?", prayers: 43 },
+    { id: "pr4", u: 7, time: "1d", text: "Thankful my brother's fever broke! Praise God 🎉", prayers: 82, answered: true },
+    { id: "pr5", u: 10, time: "1d", text: "Big chem test Friday. I studied but I'm still nervous.", prayers: 29 },
+    { id: "pr6", u: 13, time: "2d", text: "Praying for the families I saw on the news with my mom tonight.", prayers: 201 },
+  ];
+
+  events = [
+    { date: 18, title: "Youth Bible Study", time: "6:30 PM", c: "bible" },
+    { date: 20, title: "Open Doodle Canvas", time: "4:00 PM", c: "art" },
+    { date: 22, title: "Prayer Circle Live", time: "7:30 PM", c: "prayer" },
+    { date: 24, title: "Code Jam: Build a Verse App", time: "4:00 PM", c: "code" },
+    { date: 26, title: "Virtual Worship Night", time: "7:00 PM", c: "worship" },
+    { date: 27, title: "Group Doodle — Eden", time: "10:00 AM", c: "art" },
+    { date: 28, title: "Scripture Scavenger Hunt", time: "2:00 PM", c: "bible" },
+    { date: 30, title: "Creation Walk @ Park", time: "9:00 AM", c: "science" },
+  ];
+
+  trending = [
+    { label: "#worship", count: 1284, hot: true },
+    { label: "Psalm 23", count: 842 },
+    { label: "#gratitude", count: 611 },
+    { label: "Psalm 119:105", count: 430 },
+    { label: "#advent", count: 388, hot: true },
+  ];
+
+  verses = {
+    "Psalm 139:14": "I praise you because I am fearfully and wonderfully made; your works are wonderful.",
+    "Psalm 23": "The Lord is my shepherd, I lack nothing. He makes me lie down in green pastures.",
+    "Psalm 119:105": "Your word is a lamp for my feet, a light on my path.",
+    "Psalm 96": "Sing to the Lord a new song; sing to the Lord, all the earth.",
+    "Genesis 9": "I have set my rainbow in the clouds, and it will be the sign of the covenant.",
+    "Genesis 6:14": "So make yourself an ark of cypress wood; make rooms in it.",
+  };
+
+  dms = [
+    { name: "Caleb", avatar: "🐼", online: true, status: "active now", msgs: [
+      { me: false, text: "hey! you coming to worship night fri?" },
+      { me: true, text: "yesss saving you a seat" },
+      { me: false, text: "bring the uke?? 🎸" },
+      { me: true, text: "obviously" },
+    ]},
+    { name: "Maya", avatar: "🦊", online: false, status: "last seen 1h ago", msgs: [
+      { me: false, text: "that doodle you posted is unreal" },
+      { me: true, text: "haha thank you 🥹 took forever" },
+    ]},
+    { name: "Prayer Circle", avatar: "🙏", online: true, status: "4 swimming · group", group: true, msgs: [
+      { me: false, name: "Grace", text: "can we pray for my grandma tmrw morning" },
+      { me: false, name: "Gabriel", angel: true, text: "I've lit a candle. Anyone want to pray with Grace? 💛" },
+      { me: true, text: "praying right now 🕯️" },
+    ]},
+  ];
+
+  // ---------- helpers ----------
+  hex(c) { return this.COLORS[c] || "#1F7A8C"; }
+  band() { return this.BANDS[this.state.band]; }
+  activeProfile() { return this.profiles[this.state.profileIdx]; }
+  switchProfile(i) {
+    if (i === this.state.profileIdx) { this.setState({ menuOpen: false }); return; }
+    this.setState({ pinFor: i, pinEntry: "", pinError: false, menuOpen: false });
+  }
+  commitProfile(i) {
+    this.setState({ profileIdx: i, band: this.profiles[i].band, visMode: "local", visSelected: [this.profiles[i].local], pinFor: null, pinEntry: "", pinError: false });
+  }
+  pinKey(d) {
+    if (this.state.pinEntry.length >= 4) return;
+    const ne = this.state.pinEntry + d;
+    if (ne.length === 4) {
+      if (ne === "1234") this.commitProfile(this.state.pinFor);
+      else this.setState({ pinEntry: "", pinError: true });
+    } else {
+      this.setState({ pinEntry: ne, pinError: false });
+    }
+  }
+  pinDel() { this.setState({ pinEntry: this.state.pinEntry.slice(0, -1), pinError: false }); }
+  closePin() { this.setState({ pinFor: null, pinEntry: "", pinError: false }); }
+  setMedia(id, s) { const m = { ...this.state.mediaStatus }; m[id] = s; this.setState({ mediaStatus: m }); }
+  togglePosting(name) { const p = { ...this.state.posting }; p[name] = p[name] === false ? true : false; this.setState({ posting: p }); }
+  primary() { return this.props.accent || this.band().primary; }
+  primaryDeep() {
+    const map = { "#1F7A8C": "#15616F", "#FF7E6B": "#E85C47", "#E8A825": "#B9851A" };
+    return this.props.accent ? (map[this.props.accent] || this.band().deep) : this.band().deep;
+  }
+  clean(t) { return String(t).replace(/^#/, "").trim(); }
+  isScripture(t) { const s = this.clean(t); return this.BOOKS.some((b) => s.startsWith(b)) || /\d+:\d+/.test(s); }
+  tagType(t) { if (this.isScripture(t)) return "scripture"; const s = this.clean(t).toLowerCase(); return this.FEELINGS.includes(s) ? "feeling" : "topic"; }
+  tagColor(t) { const k = this.tagType(t); return k === "scripture" ? "#E8A825" : k === "feeling" ? "#FF7E6B" : "#1F7A8C"; }
+  tagIcon(t) { const k = this.tagType(t); return k === "scripture" ? "✝" : k === "feeling" ? "♥" : "#"; }
+  disp(t) { return this.isScripture(t) ? this.clean(t) : t; }
+  cmap() { const m = {}; this.communities.forEach((c) => (m[c.id] = c)); return m; }
+  go(page, extra) { this.setState({ route: { page, ...(extra || {}) }, paletteOpen: false }); }
+
+  shoal(n, color, baseLeft) {
+    const arr = [];
+    for (let i = 0; i < n; i++) arr.push({
+      style: { color, marginLeft: i === 0 ? 0 : "-4px", opacity: (0.55 + ((i * 7) % 5) / 10).toFixed(2), animation: this.props.reduceMotion ? "none" : `bob 3s ease-in-out ${(i * 0.31).toFixed(2)}s infinite` },
+    });
+    return arr;
+  }
+  shoalRail(n, color) {
+    const arr = [];
+    for (let i = 0; i < n; i++) arr.push({
+      railStyle: { color, position: "absolute", left: ((i % 6) * 16 + 2) + "%", top: (Math.floor(i / 6) * 26 + (i % 2) * 6) + "px", opacity: (0.6 + ((i * 5) % 4) / 10).toFixed(2), animation: this.props.reduceMotion ? "none" : `bob ${(2.6 + (i % 3) * 0.4).toFixed(1)}s ease-in-out ${(i * 0.27).toFixed(2)}s infinite` },
+    });
+    return arr;
+  }
+
+  // ---------- post view builders ----------
+  postView(p) {
+    const cm = this.cmap();
+    const c = cm[p.c], u = this.users[p.u];
+    const reacted = this.state.reacted;
+    const imgBg = { ark: "linear-gradient(135deg,#BFE6EC,#7FC9D6)", rainbow: "linear-gradient(135deg,#FFE9A8,#FFC1B6,#CDB6E8,#BFE6EC)", dog: "linear-gradient(135deg,#FFE9A8,#E8A825)" };
+    const imgLabel = { ark: "photo · lego ark", rainbow: "doodle · rainbow", dog: "photo · puppy" };
+    return {
+      ...p,
+      cName: c.name, cEmoji: c.emoji,
+      uName: u.name, uAvatar: u.avatar, uColor: this.hex(u.color),
+      imageBg: imgBg[p.image], imageLabel: imgLabel[p.image] || "image",
+      crossShared: this.shareInfo(p).cross, shareIcon: this.shareInfo(p).icon, shareLabel: this.shareInfo(p).label, shareNote: this.shareInfo(p).note,
+      tagList: p.tags.map((t) => ({
+        label: this.disp(t), icon: this.tagIcon(t), onClick: () => this.go("tag", { tag: t }),
+        style: { display: "inline-flex", alignItems: "center", gap: "5px", padding: "5px 11px", borderRadius: "999px", fontSize: "12.5px", fontWeight: 800, color: "#fff", whiteSpace: "nowrap", background: this.tagColor(t), border: "none" },
+      })),
+      reactionList: [["heart", "❤️"], ["amen", "🙏"], ["praise", "🎉"], ["wow", "✨"]].map(([k, icon]) => {
+        const active = !!reacted[p.id + ":" + k];
+        return {
+          key: k, icon, count: (p.react[k] || 0) + (active ? 1 : 0),
+          onClick: () => this.react(p.id, k),
+          style: { display: "inline-flex", alignItems: "center", gap: "6px", padding: "8px 13px", borderRadius: "999px", fontSize: "13px", fontWeight: 700, color: active ? "#15616F" : "#5A4E7A", background: active ? "rgba(31,122,140,.12)" : "rgba(43,35,64,.05)", border: active ? "1.5px solid rgba(31,122,140,.5)" : "1.5px solid transparent" },
+        };
+      }),
+    };
+  }
+
+  react(id, k) { const r = { ...this.state.reacted }; r[id + ":" + k] = !r[id + ":" + k]; this.setState({ reacted: r }); }
+  pray(id) { const p = { ...this.state.prayed }; p[id] = true; this.setState({ prayed: p }); }
+
+  // ---------- palette ----------
+  buildResults() {
+    const cm = this.cmap();
+    const all = [];
+    this.communities.forEach((c) => all.push({ type: "Community", title: c.name, sub: c.members.toLocaleString() + " members", icon: c.emoji, color: this.hex(c.color), act: () => this.go("community", { communityId: c.id }) }));
+    const seen = new Set();
+    [...this.trending.map((t) => t.label), ...this.feed.flatMap((p) => p.tags)].forEach((t) => {
+      const key = this.clean(t).toLowerCase(); if (seen.has(key)) return; seen.add(key);
+      if (this.isScripture(t)) all.push({ type: "Scripture", title: this.clean(t), sub: "verse current", icon: "✝", color: "#E8A825", act: () => this.go("tag", { tag: t }) });
+      else all.push({ type: "Tag", title: t, sub: "topic current", icon: "#", color: "#1F7A8C", act: () => this.go("tag", { tag: t }) });
+    });
+    this.users.forEach((u) => all.push({ type: "Person", title: u.name, sub: "in your shoal", icon: u.avatar, color: this.hex(u.color), act: () => this.go("profile") }));
+    this.feed.forEach((p) => all.push({ type: "Post", title: p.title, sub: "in " + cm[p.c].name, icon: "📝", color: "#5A4E7A", act: () => this.go("community", { communityId: p.c }) }));
+    this.prayers.forEach((p) => all.push({ type: "Prayer", title: p.text.slice(0, 48) + (p.text.length > 48 ? "…" : ""), sub: p.prayers + " praying", icon: "🙏", color: "#FF7E6B", act: () => this.go("prayer") }));
+    this.events.forEach((e) => all.push({ type: "Event", title: e.title, sub: e.day + " · " + e.time, icon: "📅", color: "#E8A825", act: () => this.go("home") }));
+    return all;
+  }
+  match(title, q) {
+    const s = title.toLowerCase(); if (s.includes(q)) return true;
+    let i = 0; for (const ch of s) { if (ch === q[i]) i++; if (i >= q.length) return true; } return false;
+  }
+  filteredResults() {
+    let q = this.state.query.toLowerCase().trim();
+    if (this.SYNONYMS[q]) q = this.SYNONYMS[q];
+    const facetMap = { People: "Person", Communities: "Community", Posts: "Post", Prayers: "Prayer", Events: "Event", Scripture: "Scripture", Tags: "Tag" };
+    let res = this.buildResults();
+    if (this.state.facet !== "All") res = res.filter((r) => r.type === facetMap[this.state.facet]);
+    if (!q) {
+      if (this.state.facet === "All") res = res.filter((r) => r.type === "Scripture" || r.type === "Tag" || r.type === "Community").slice(0, 7);
+      else res = res.slice(0, 8);
+    } else {
+      res = res.filter((r) => this.match(r.title, q) || this.match(r.sub, q)).slice(0, 12);
+    }
+    return res;
+  }
+  openPalette() { this.setState({ paletteOpen: true, query: "", facet: "All", pIndex: 0 }); }
+  closePalette() { this.setState({ paletteOpen: false }); }
+  onPaletteKey(e) {
+    const res = this.filteredResults();
+    if (e.key === "ArrowDown") { e.preventDefault(); this.setState({ pIndex: Math.min(res.length - 1, this.state.pIndex + 1) }); }
+    else if (e.key === "ArrowUp") { e.preventDefault(); this.setState({ pIndex: Math.max(0, this.state.pIndex - 1) }); }
+    else if (e.key === "Enter") { e.preventDefault(); const r = res[this.state.pIndex]; if (r) r.act(); }
+    else if (e.key === "Escape") { this.closePalette(); }
+  }
+
+  // ---------- dm ----------
+  activeMessages() {
+    const t = this.dms[this.state.dmThread];
+    const base = t.msgs.map((m) => ({ ...m }));
+    const extra = (this.state.dmExtra[this.state.dmThread] || []).map((text) => ({ me: true, text }));
+    return [...base, ...extra];
+  }
+  sendDm() {
+    const v = this.state.dmDraft.trim(); if (!v) return;
+    const ex = { ...this.state.dmExtra };
+    ex[this.state.dmThread] = [...(ex[this.state.dmThread] || []), v];
+    this.setState({ dmExtra: ex, dmDraft: "" });
+  }
+  onDmKey(e) { if (e.key === "Enter") { e.preventDefault(); this.sendDm(); } }
+
+  // ---------- tags ----------
+  toggleFollowTag() {
+    const t = this.state.route.tag; if (!t) return;
+    const f = this.state.followed.includes(t) ? this.state.followed.filter((x) => x !== t) : [...this.state.followed, t];
+    this.setState({ followed: f });
+  }
+
+  // ---------- AI auto-tags (Gabriel) ----------
+  KEYWORDS = {
+    worship: "#worship", song: "#worship", sing: "#worship", hymn: "#worship", praise: "#worship",
+    pray: "#prayer", prayer: "#prayer", praying: "#prayer",
+    draw: "#art", paint: "#art", doodle: "#art", sketch: "#art", canvas: "#art",
+    lego: "#creativity", build: "#creativity", built: "#creativity", made: "#creativity", make: "#creativity",
+    bible: "#scripture", verse: "#scripture", memoriz: "#scripture",
+    grateful: "#gratitude", thankful: "#gratitude", thank: "#gratitude", blessed: "#gratitude",
+    dog: "#pets", cat: "#pets", puppy: "#pets", fish: "#pets",
+    code: "#code", app: "#code", website: "#code", api: "#code",
+    honeybee: "#creation", star: "#creation", volcano: "#creation", experiment: "#creation",
+    hike: "#outdoors", trail: "#outdoors", camp: "#outdoors",
+  };
+  genTags(text) {
+    const out = [];
+    const seen = new Set();
+    const push = (t) => { const k = this.clean(t).toLowerCase(); if (!seen.has(k)) { seen.add(k); out.push(t); } };
+    // scripture references in free text: "Psalm 96", "John 3:16", "1 Corinthians 13"
+    const re = new RegExp("\\b((?:[1-3]\\s)?(?:" + this.BOOKS.join("|") + "))\\s+(\\d+(?::\\d+(?:-\\d+)?)?)", "gi");
+    let m;
+    while ((m = re.exec(text)) !== null) {
+      const book = m[1].replace(/\b\w/g, (c) => c.toUpperCase()).replace(/\s+/g, " ").trim();
+      push(book + " " + m[2]);
+    }
+    const low = text.toLowerCase();
+    for (const k in this.KEYWORDS) if (low.includes(k)) push(this.KEYWORDS[k]);
+    return out.slice(0, 5);
+  }
+  autoTags() { return this.state.composerEdited ? this.state.composerTags : this.genTags(this.state.composer); }
+  editTags(fn) {
+    const base = (this.state.composerEdited ? this.state.composerTags : this.genTags(this.state.composer)).slice();
+    this.setState({ composerTags: fn(base), composerEdited: true });
+  }
+  removeComposerTag(label) { this.editTags((a) => a.filter((x) => x !== label)); }
+  addComposerTag() {
+    const v = this.state.newTag.trim(); if (!v) return;
+    let lbl = v;
+    if (!this.isScripture(v) && !v.startsWith("#")) lbl = "#" + v.replace(/^#+/, "");
+    this.editTags((a) => a.some((x) => this.clean(x).toLowerCase() === this.clean(lbl).toLowerCase()) ? a : [...a, lbl]);
+    this.setState({ newTag: "" });
+  }
+  onNewTagKey(e) { if (e.key === "Enter") { e.preventDefault(); this.addComposerTag(); } }
+
+  // ---------- currents filter page ----------
+  filterMatches() {
+    const q = this.state.filterQuery.toLowerCase().trim();
+    const norm = (t) => this.clean(t).toLowerCase();
+    const sel = this.state.filterTags.map(norm);
+    return this.feed.filter((p) => {
+      const hay = (p.title + " " + p.body + " " + p.tags.join(" ")).toLowerCase();
+      const kw = !q || hay.includes(q);
+      const hasAll = sel.every((s) => p.tags.some((t) => norm(t) === s));
+      return kw && hasAll;
+    });
+  }
+  filterAvailableTags() {
+    const norm = (t) => this.clean(t).toLowerCase();
+    const sel = this.state.filterTags.map(norm);
+    const counts = {};
+    this.filterMatches().forEach((p) => p.tags.forEach((t) => { if (!sel.includes(norm(t))) counts[t] = (counts[t] || 0) + 1; }));
+    return Object.keys(counts).map((label) => ({ label, count: counts[label] })).sort((a, b) => b.count - a.count);
+  }
+  toggleFilterTag(label) {
+    const norm = (t) => this.clean(t).toLowerCase();
+    const has = this.state.filterTags.some((t) => norm(t) === norm(label));
+    this.setState({ filterTags: has ? this.state.filterTags.filter((t) => norm(t) !== norm(label)) : [...this.state.filterTags, label] });
+  }
+  clearFilter() { this.setState({ filterTags: [], filterQuery: "" }); }
+
+  // ---------- post visibility / cross-share ----------
+  shareInfo(p) {
+    const cm = this.cmap();
+    const vis = p.vis;
+    if (vis === "everyone") return { cross: true, icon: "🌐", label: "Everyone", note: "Shared across the whole harbor — every comment shows up in one thread." };
+    if (Array.isArray(vis) && vis.length > 1) {
+      const names = vis.map((id) => (cm[id] ? cm[id].name : id));
+      return { cross: true, icon: "🔗", label: "+" + (vis.length - 1), note: "Shared with " + names.join(", ") + " — one post, comments visible to all." };
+    }
+    return { cross: false, icon: "", label: "", note: "" };
+  }
+  visLabel() {
+    const cm = this.cmap();
+    if (this.state.visMode === "everyone") return "Everyone";
+    if (this.state.visMode === "select") return this.state.visSelected.length + " communit" + (this.state.visSelected.length === 1 ? "y" : "ies");
+    return cm[this.activeProfile().local] ? cm[this.activeProfile().local].name : "My community";
+  }
+  visIcon() { return this.state.visMode === "everyone" ? "🌐" : this.state.visMode === "select" ? "🔗" : "📍"; }
+  setVisMode(m) {
+    const next = { visMode: m, visOpen: m === "select" ? true : false };
+    if (m === "select" && this.state.visSelected.length === 0) next.visSelected = [this.activeProfile().local];
+    this.setState(next);
+  }
+  toggleVisCommunity(id) {
+    const has = this.state.visSelected.includes(id);
+    this.setState({ visSelected: has ? this.state.visSelected.filter((x) => x !== id) : [...this.state.visSelected, id] });
+  }
+
+  // ---------- calendar ----------
+  CAL_YEAR = 2026; CAL_MONTH = 5; CAL_TODAY = 22;
+  buildCalendar() {
+    const first = new Date(this.CAL_YEAR, this.CAL_MONTH, 1).getDay();
+    const days = new Date(this.CAL_YEAR, this.CAL_MONTH + 1, 0).getDate();
+    const byDate = {};
+    this.events.forEach((e) => { (byDate[e.date] = byDate[e.date] || []).push(e); });
+    const cm = this.cmap();
+    const cells = [];
+    for (let i = 0; i < first; i++) cells.push(null);
+    for (let dnum = 1; dnum <= days; dnum++) {
+      const evs = (byDate[dnum] || []).map((e) => ({ title: e.title, time: e.time, color: this.hex(cm[e.c].color), emoji: cm[e.c].emoji }));
+      cells.push({ date: dnum, today: dnum === this.CAL_TODAY, events: evs });
+    }
+    while (cells.length % 7 !== 0) cells.push(null);
+    const weeks = [];
+    for (let i = 0; i < cells.length; i += 7) weeks.push(cells.slice(i, i + 7));
+    return weeks;
+  }
+  toggleRsvp(key) { const r = { ...this.state.rsvp }; r[key] = !r[key]; this.setState({ rsvp: r }); }
+
+  // ---------- lifecycle ----------
+  componentDidMount() {
+    this._key = (e) => {
+      const meta = e.metaKey || e.ctrlKey;
+      const tag = (e.target.tagName || "").toLowerCase();
+      const typing = tag === "input" || tag === "textarea";
+      if (meta && (e.key === "k" || e.key === "K")) { e.preventDefault(); this.state.paletteOpen ? this.closePalette() : this.openPalette(); }
+      else if (e.key === "/" && !typing && !this.state.paletteOpen) { e.preventDefault(); this.openPalette(); }
+      else if (e.key === "Escape" && this.state.paletteOpen) { this.closePalette(); }
+    };
+    window.addEventListener("keydown", this._key);
+  }
+  componentWillUnmount() { window.removeEventListener("keydown", this._key); }
+  componentDidUpdate(pp, ps) {
+    if (this.state.paletteOpen && !ps.paletteOpen && this.paletteRef.current) this.paletteRef.current.focus();
+  }
+
+  renderVals() {
+    const t = this.band();
+    const prim = this.primary(), deep = this.primaryDeep();
+    const page = this.state.route.page;
+    const cm = this.cmap();
+
+    // depth (nested communities deepen one notch)
+    const depthOf = { home: 0, discover: 0, filter: 0, calendar: 0, admin: 2, tag: 1, community: 1, profile: 1, prayer: 1, chat: 3 };
+    let d = depthOf[page] ?? 0;
+    if (page === "community") { const cc = cm[this.state.route.communityId]; d = cc && cc.parent ? 2 : 1; }
+    const isAdminPage = page === "admin";
+    const depthBg =
+      isAdminPage ? "#F5F2EC"
+      : d === 3 ? "radial-gradient(120% 80% at 30% 0%, #14515F, transparent 60%), #0E3A45"
+      : d === 2 ? "linear-gradient(180deg,#F2EFE6,#E6EEEE)"
+      : d === 1 ? "#F2EFE6"
+      : "#F5F2EC";
+    const depthStyle = { background: depthBg, color: d === 3 ? "#EAF6F4" : (isAdminPage ? "#1A1A1A" : "#2B2340"), minHeight: "calc(100vh - 71px)", transition: "background .4s ease, color .4s ease" };
+
+    // collapsible dock
+    const expanded = !this.state.navCollapsed;
+    const shellStyle = { display: "grid", gridTemplateColumns: expanded ? "252px 1fr" : "78px 1fr", minHeight: "100vh", width: "100%" };
+    const sidebarStyle = { position: "sticky", top: 0, alignSelf: "start", height: "100vh", overflowY: "auto", overflowX: "hidden", background: "#FFFDF8", borderRight: "1px solid rgba(43,35,64,.08)", padding: expanded ? "20px 14px" : "18px 12px", display: "flex", flexDirection: "column", gap: "6px" };
+    const headerStyle = expanded ? { display: "flex", alignItems: "center", gap: "11px", padding: "2px 4px 14px" } : { display: "flex", flexDirection: "column", alignItems: "center", gap: "12px", padding: "2px 0 14px" };
+    const collapseBtnStyle = { width: "30px", height: "30px", borderRadius: "9px", background: "rgba(43,35,64,.05)", display: "grid", placeItems: "center", fontSize: "15px", color: "#5A4E7A", flexShrink: 0 };
+
+    // nav
+    const navItems = [
+      { id: "home", label: "Home", iconPath: "M3 10.5L12 3l9 7.5M5.5 9.3V20h13V9.3" },
+      { id: "discover", label: "Discover", iconPath: "M12 3a9 9 0 100 18 9 9 0 000-18zM15.6 8.4l-2.3 4.9-4.9 2.3 2.3-4.9z" },
+      { id: "filter", label: "Find Currents", iconPath: "M3 8.5c3-3 6 3 9 0s6-3 9 0M3 15.5c3-3 6 3 9 0s6-3 9 0" },
+      { id: "calendar", label: "Calendar", iconPath: "M4 6h16v14H4zM4 10h16M8 3.5v4M16 3.5v4" },
+      { id: "chat", label: "Messages", iconPath: "M4 5h16v10H9l-4 4V5z" },
+      { id: "prayer", label: "Prayer Wall", iconPath: "M12 4c1.9 2.7 2.9 3.9 2.9 6.1a2.9 2.9 0 11-5.8 0C9.1 7.9 10.1 6.7 12 4zM7.5 20.5h9" },
+      { id: "profile", label: "Profile", iconPath: "M12 11.5a3.5 3.5 0 100-7 3.5 3.5 0 000 7zM5.5 20a6.5 6.5 0 0113 0" },
+    ];
+    const nav = navItems.map((n) => {
+      const active = page === n.id;
+      return {
+        ...n, onClick: () => this.go(n.id), title: n.label,
+        navStyle: { display: "flex", alignItems: "center", gap: "11px", padding: expanded ? "10px 12px" : "11px 0", justifyContent: expanded ? "flex-start" : "center", borderRadius: "13px", fontSize: "14px", fontWeight: 700, background: active ? "rgba(31,122,140,.1)" : "transparent", color: active ? "#0E3A45" : "#2B2340" },
+        lampStyle: { width: "6px", height: "6px", borderRadius: "50%", flexShrink: 0, background: active ? "#FFC94A" : "rgba(43,35,64,.15)", boxShadow: active ? "0 0 8px 1px #FFC94A" : "none" },
+      };
+    });
+
+    const myCommunities = this.communities.filter((c) => !c.parent).slice(0, 5).map((c) => ({
+      ...c, onClick: () => this.go("community", { communityId: c.id }), title: c.name,
+      rowStyle: { display: "flex", alignItems: "center", gap: "10px", padding: expanded ? "7px 9px" : "6px 0", justifyContent: expanded ? "flex-start" : "center", borderRadius: "11px", textAlign: "left", fontSize: "13px", fontWeight: 700 },
+    }));
+    const followedView = this.state.followed.map((label) => ({
+      label, title: label, onClick: () => this.go("tag", { tag: label }),
+      dotStyle: { width: "8px", height: "8px", borderRadius: "2px", background: this.tagColor(label), flexShrink: 0, transform: "rotate(45deg)" },
+      rowStyle: { display: "flex", alignItems: "center", gap: "9px", padding: expanded ? "7px 10px" : "8px 0", justifyContent: expanded ? "flex-start" : "center", borderRadius: "11px", textAlign: "left", fontSize: "13px", fontWeight: 700, color: "#5A4E7A" },
+    }));
+    const profileBtnStyle = expanded
+      ? { display: "flex", alignItems: "center", gap: "11px", padding: "10px", borderRadius: "16px", background: "#FFF8EC", border: "1.5px solid rgba(43,35,64,.07)", textAlign: "left", marginTop: "10px" }
+      : { display: "grid", placeItems: "center", padding: "8px 0", marginTop: "10px" };
+
+    // bands dial
+    // PIN gate for profile switching
+    const pinOpen = this.state.pinFor !== null;
+    const pinProfile = pinOpen ? this.profiles[this.state.pinFor] : null;
+    const pinDots = [0, 1, 2, 3].map((i) => ({ style: { width: "14px", height: "14px", borderRadius: "50%", border: "2px solid " + (this.state.pinError ? "#E85C47" : "rgba(43,35,64,.3)"), background: i < this.state.pinEntry.length ? (this.state.pinError ? "#E85C47" : "var(--c-primary,#1F7A8C)") : "transparent" } }));
+    const pinKeys = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "", "0", "del"].map((k) => ({
+      key: k, isDel: k === "del", isBlank: k === "", label: k === "del" ? "⌫" : k,
+      onClick: k === "del" ? () => this.pinDel() : k === "" ? () => {} : () => this.pinKey(k),
+      style: { height: "56px", borderRadius: "14px", fontSize: "22px", fontWeight: 700, color: "#2B2340", background: k === "" ? "transparent" : "rgba(43,35,64,.04)", border: "none", cursor: k === "" ? "default" : "pointer" },
+    }));
+
+    // quick actions
+    const qa = [
+      { label: "Prayer Wall", sub: "6 need you today", tint: "#1F7A8C", iconPath: "M12 4c1.9 2.7 2.9 3.9 2.9 6.1a2.9 2.9 0 11-5.8 0C9.1 7.9 10.1 6.7 12 4zM7.5 20.5h9", go: "prayer" },
+      { label: "Discover", sub: "9 harbors open", tint: "#C26551", iconPath: "M12 3a9 9 0 100 18 9 9 0 000-18zM15.6 8.4l-2.3 4.9-4.9 2.3 2.3-4.9z", go: "discover" },
+      { label: "Worship Night", sub: "Fri 7pm · RSVP", tint: "#7B6BA6", iconPath: "M9 17.5V6l10-2v11.5M9 9.5l10-2M9 17.5a2.3 2.3 0 11-4.6 0 2.3 2.3 0 014.6 0zM19 15.5a2.3 2.3 0 11-4.6 0 2.3 2.3 0 014.6 0z", go: null },
+      { label: "Messages", sub: "2 new", tint: "#5C9866", iconPath: "M4 5h16v10H9l-4 4V5z", go: "chat" },
+    ];
+    const quickActions = qa.map((q) => ({ ...q, onClick: () => q.go && this.go(q.go),
+      style: { textAlign: "left", padding: "16px", borderRadius: "14px", background: "#fff", border: "1px solid rgba(43,35,64,.09)", boxShadow: "0 1px 2px rgba(43,35,64,.04)" },
+      iconWrap: { display: "inline-grid", placeItems: "center", width: "40px", height: "40px", borderRadius: "11px", background: q.tint + "1a" },
+    }));
+
+    const composerChips = [["M4 7.5h3L8.5 5.5h7L17 7.5h3v11H4zM12 11a3 3 0 100 6 3 3 0 000-6z", "Photo"], ["M4 20l4-1 9.5-9.5-3-3L5 16zM14.5 6l3 3", "Doodle"], ["M12 4c1.9 2.7 2.9 3.9 2.9 6.1a2.9 2.9 0 11-5.8 0C9.1 7.9 10.1 6.7 12 4zM7.5 20.5h9", "Prayer"], ["M5 4.5h10a2 2 0 012 2v13H7a2 2 0 01-2-2zM5 17.5h12", "Verse"], ["M12 21a9 9 0 100-18 9 9 0 000 18zM9.5 10.5h.01M14.5 10.5h.01M9 14.5c1 1 5 1 6 0", "Feeling"]].map(([iconPath, label]) => ({ iconPath, label }));
+
+    // auto-tags (Gabriel)
+    const autoTags = this.autoTags();
+    const autoTagChips = autoTags.map((label) => ({
+      label: this.disp(label), icon: this.tagIcon(label), onRemove: () => this.removeComposerTag(label),
+      style: { display: "inline-flex", alignItems: "center", gap: "6px", padding: "5px 6px 5px 11px", borderRadius: "999px", fontSize: "12.5px", fontWeight: 800, color: "#fff", whiteSpace: "nowrap", background: this.tagColor(label), border: "none" },
+    }));
+    const autoTagSummary = autoTags.slice(0, 3).map((x) => this.disp(x)).join("  ") + (autoTags.length > 3 ? "  +" + (autoTags.length - 3) : "");
+
+    // currents filter page
+    const fNorm = (t) => this.clean(t).toLowerCase();
+    const filterSelected = this.state.filterTags.map((label) => ({
+      label: this.disp(label), icon: this.tagIcon(label), onRemove: () => this.toggleFilterTag(label),
+      style: { display: "inline-flex", alignItems: "center", gap: "6px", padding: "6px 8px 6px 12px", borderRadius: "999px", fontSize: "13px", fontWeight: 800, color: "#fff", whiteSpace: "nowrap", background: this.tagColor(label), border: "none" },
+    }));
+    const filterTagsAvailable = this.filterAvailableTags().map((tg) => ({
+      label: this.disp(tg.label), count: tg.count, icon: this.tagIcon(tg.label), onClick: () => this.toggleFilterTag(tg.label),
+      style: { display: "inline-flex", alignItems: "center", gap: "7px", padding: "8px 14px", borderRadius: "999px", fontSize: "13.5px", fontWeight: 700, whiteSpace: "nowrap", color: this.tagColor(tg.label), background: "#fff", border: "1.5px solid " + this.tagColor(tg.label) + "55" },
+      countStyle: { fontSize: "11.5px", fontWeight: 800, color: "#fff", background: this.tagColor(tg.label), borderRadius: "999px", padding: "1px 7px" },
+    }));
+    const filterFeed = this.filterMatches().map((p) => this.postView(p));
+
+    // calendar
+    const calWeeks = this.buildCalendar().map((week) => week.map((cell) => {
+      if (!cell) return { blank: true, cellStyle: { minHeight: "92px", borderRadius: "12px" } };
+      return {
+        blank: false, date: cell.date, today: cell.today,
+        cellStyle: { minHeight: "92px", borderRadius: "12px", padding: "7px 8px", background: cell.today ? "rgba(31,122,140,.08)" : "#fff", border: cell.today ? "2px solid var(--c-primary,#1F7A8C)" : "1.5px solid rgba(43,35,64,.07)", display: "flex", flexDirection: "column", gap: "4px" },
+        dateStyle: { fontSize: "13px", fontWeight: 800, color: cell.today ? "#15616F" : "#5A4E7A", alignSelf: "flex-start" },
+        events: cell.events.map((e) => ({ title: e.title, emoji: e.emoji, chipStyle: { display: "flex", alignItems: "center", gap: "4px", fontSize: "10.5px", fontWeight: 700, color: "#fff", background: e.color, borderRadius: "5px", padding: "2px 5px", overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis" } })),
+      };
+    }));
+    const calRsvp = this.events.map((e) => {
+      const key = "e" + e.date;
+      const on = !!this.state.rsvp[key];
+      return {
+        title: e.title, time: e.time, cName: cm[e.c].name, date: e.date,
+        day: ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"][new Date(2026, 5, e.date).getDay()],
+        chipColor: this.hex(cm[e.c].color),
+        rsvpLabel: on ? "Going ✓" : "RSVP", onClick: () => this.toggleRsvp(key),
+        rsvpStyle: { padding: "7px 14px", borderRadius: "999px", fontSize: "12.5px", fontWeight: 800, border: "none", background: on ? "rgba(79,176,88,.16)" : "#FFC94A", color: on ? "#2F7A3A" : "#2B2340", boxShadow: on ? "none" : "0 " + t.shadow + "px 0 0 #B9851A" },
+      };
+    });
+
+    // composer visibility
+    const visModeRadios = [
+      { id: "local", icon: "📍", title: cm[this.activeProfile().local] ? cm[this.activeProfile().local].name : "My community", sub: "Your home water · default" },
+      { id: "everyone", icon: "🌐", title: "Everyone", sub: "Anyone across the harbor" },
+      { id: "select", icon: "🔗", title: "Pick communities", sub: "Share once — comments stay shared" },
+    ].map((o) => {
+      const on = this.state.visMode === o.id;
+      return { ...o, onClick: () => this.setVisMode(o.id), rowStyle: { display: "flex", alignItems: "center", gap: "11px", width: "100%", padding: "10px", borderRadius: "12px", textAlign: "left", border: "none", background: on ? "rgba(31,122,140,.08)" : "transparent" }, dot: on };
+    });
+    const visCommunityChecks = this.communities.slice(0, 6).map((c) => {
+      const on = this.state.visSelected.includes(c.id);
+      return { id: c.id, name: c.name, emoji: c.emoji, onClick: () => this.toggleVisCommunity(c.id), boxStyle: { width: "20px", height: "20px", borderRadius: "6px", display: "grid", placeItems: "center", fontSize: "13px", color: "#fff", flexShrink: 0, background: on ? "var(--c-primary,#1F7A8C)" : "transparent", border: on ? "none" : "1.5px solid rgba(43,35,64,.25)" }, check: on ? "✓" : "" };
+    });
+
+    // filters
+    const filterLabels = ["For You", "Following", "Scripture", "Prayer", "Recent"];
+    const filters = filterLabels.map((label) => {
+      const on = this.state.filter === label;
+      return { label, onClick: () => this.setState({ filter: label }), style: { padding: "8px 15px", borderRadius: "999px", fontSize: "13px", fontWeight: 800, background: on ? prim : "rgba(43,35,64,.05)", color: on ? "#fff" : "#5A4E7A", border: "none" } };
+    });
+
+    // feed filtering
+    let feedRaw = this.feed;
+    const f = this.state.filter;
+    if (f === "Scripture") feedRaw = this.feed.filter((p) => p.tags.some((x) => this.isScripture(x)));
+    else if (f === "Prayer") feedRaw = this.feed.filter((p) => p.c === "prayer" || p.tags.includes("#prayer"));
+    else if (f === "Following") feedRaw = this.feed.filter((p) => ["worship", "art", "bible"].includes(p.c));
+    const feedView = feedRaw.map((p) => this.postView(p));
+
+    const trendingView = this.trending.map((c) => ({ ...c, color: this.tagColor(c.label), icon: this.tagIcon(c.label), count: c.count.toLocaleString(), onClick: () => this.go("tag", { tag: c.label }) }));
+    const eventsView = this.events.map((e) => ({ ...e, cName: cm[e.c].name, day: ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"][new Date(2026, 5, e.date).getDay()] }));
+    const discoverView = this.communities.filter((c) => !c.parent).map((c) => ({ ...c, membersLabel: c.members.toLocaleString(), onClick: () => this.go("community", { communityId: c.id }), shoal: this.shoal(Math.max(3, Math.min(8, Math.round(c.members / 450))), "#fff").map((s) => ({ style: { ...s.style, color: undefined, marginLeft: s.style.marginLeft, opacity: s.style.opacity, animation: s.style.animation } })) }));
+
+    // community (with nesting)
+    const curC = cm[this.state.route.communityId] || this.communities[0];
+    const parentC = curC.parent ? cm[curC.parent] : null;
+    const childCommunities = this.communities.filter((c) => c.parent === curC.id).map((c) => ({
+      ...c, membersLabel: c.members.toLocaleString(), onClick: () => this.go("community", { communityId: c.id }),
+      shoal: this.shoal(Math.max(3, Math.min(7, Math.round(c.members / 60))), "#fff").map((s) => ({ style: { color: undefined, marginLeft: s.style.marginLeft, opacity: s.style.opacity, animation: s.style.animation } })),
+    }));
+    const community = {
+      ...curC, membersLabel: curC.members.toLocaleString(),
+      isNested: !!parentC, hasChildren: childCommunities.length > 0,
+      parentName: parentC ? parentC.name : "", parentEmoji: parentC ? parentC.emoji : "",
+      goParent: parentC ? () => this.go("community", { communityId: parentC.id }) : () => {},
+    };
+    const communityFeed = this.feed.filter((p) => p.c === curC.id).map((p) => this.postView(p));
+    const communityFeedSafe = communityFeed.length ? communityFeed : this.feed.slice(0, 2).map((p) => this.postView({ ...p, c: curC.id }));
+
+    // prayer
+    const prayerView = this.prayers.map((p) => {
+      const u = this.users[p.u];
+      const prayed = !!this.state.prayed[p.id];
+      const answered = !!p.answered;
+      return {
+        ...p, uName: u.name, uAvatar: u.avatar, uColor: this.hex(u.color),
+        count: p.prayers + (prayed ? 1 : 0),
+        btnLabel: prayed ? "Praying with you" : "Pray",
+        onClick: () => this.pray(p.id),
+        cardStyle: { background: answered ? "linear-gradient(135deg,#F1FBF0,#fff)" : "#fff", borderRadius: "20px", border: answered ? "1.5px solid rgba(79,176,88,.3)" : "1.5px solid rgba(43,35,64,.06)", boxShadow: "0 6px 18px rgba(43,35,64,.05)", padding: "18px" },
+        btnStyle: { display: "inline-flex", alignItems: "center", gap: "7px", padding: "8px 16px", borderRadius: "999px", fontSize: "13px", fontWeight: 800, background: prayed ? "rgba(232,168,37,.18)" : "#FFC94A", color: prayed ? "#8A6B00" : "#2B2340", boxShadow: prayed ? "none" : "0 " + t.shadow + "px 0 0 #B9851A", border: "none" },
+      };
+    });
+
+    // profile
+    const myPosts = this.feed.filter((p) => ["worship", "bible"].includes(p.c)).slice(0, 2).map((p) => this.postView(p));
+    const badgeDefs = [
+      { name: "Kind Words", icon: "💛", earned: true }, { name: "Scripture Star", icon: "⭐", earned: true },
+      { name: "Prayer Warrior", icon: "🙏", earned: true }, { name: "Helper", icon: "🤝", earned: true },
+      { name: "Creator", icon: "🎨", earned: false }, { name: "Bookworm", icon: "📚", earned: false },
+      { name: "Worship Lead", icon: "🎤", earned: false }, { name: "Angel Wings", icon: "😇", earned: false },
+    ];
+    const badges = badgeDefs.map((b) => ({ ...b, style: { aspectRatio: "1", borderRadius: "50%", display: "grid", placeItems: "center", fontSize: "24px", background: b.earned ? "#FFF8EC" : "#EFECF6", boxShadow: b.earned ? "0 3px 0 0 rgba(43,35,64,.12)" : "none", opacity: b.earned ? 1 : 0.4, filter: b.earned ? "none" : "grayscale(.7)" } }));
+
+    // dm threads
+    const dmThreads = this.dms.map((th, i) => {
+      const on = this.state.dmThread === i;
+      const last = th.msgs[th.msgs.length - 1];
+      return { name: th.name, avatar: th.avatar, online: th.online, preview: (last.me ? "You: " : "") + last.text, onClick: () => this.setState({ dmThread: i }), style: { display: "flex", alignItems: "center", gap: "11px", padding: "10px", borderRadius: "14px", background: on ? "rgba(127,201,214,.14)" : "transparent", border: "none", width: "100%" } };
+    });
+    const activeTh = this.dms[this.state.dmThread];
+    const activeThread = { name: activeTh.name, avatar: activeTh.avatar, status: activeTh.status };
+    const activeMessages = this.activeMessages().map((m) => {
+      const mine = m.me;
+      return {
+        text: m.text, name: m.name, showName: !!(activeTh.group && !mine && m.name),
+        rowStyle: { display: "flex", flexDirection: "column", alignItems: mine ? "flex-end" : "flex-start", gap: "2px" },
+        nameStyle: { fontSize: "11px", fontWeight: 800, color: m.angel ? "#FFC94A" : "#7FC9D6", paddingLeft: "4px" },
+        bubbleStyle: { maxWidth: "70%", padding: "10px 15px", borderRadius: mine ? "16px 16px 4px 16px" : "16px 16px 16px 4px", fontSize: "14.5px", fontWeight: 500, lineHeight: 1.4, background: mine ? "#7FC9D6" : m.angel ? "rgba(255,201,74,.16)" : "rgba(255,255,255,.09)", color: mine ? "#0E3A45" : m.angel ? "#FFE9A8" : "#EAF6F4", fontFamily: m.angel ? "'Caveat',cursive" : "inherit", fontStyle: "normal" },
+      };
+    });
+
+    // tag page
+    const tagLabel = this.state.route.tag || "#worship";
+    const tagIsScripture = this.isScripture(tagLabel);
+    const tagFeed = this.feed.filter((p) => p.tags.some((x) => this.clean(x).toLowerCase() === this.clean(tagLabel).toLowerCase())).map((p) => this.postView(p));
+    const tagFeedSafe = tagFeed.length ? tagFeed : this.feed.slice(0, 3).map((p) => this.postView(p));
+    const following = this.state.followed.includes(tagLabel);
+
+    // palette
+    const results = this.filteredResults();
+    const facetList = ["All", "People", "Communities", "Posts", "Prayers", "Events", "Scripture", "Tags"].map((label) => {
+      const on = this.state.facet === label;
+      return { label, onClick: () => this.setState({ facet: label, pIndex: 0 }), style: { padding: "6px 13px", borderRadius: "999px", fontSize: "12.5px", fontWeight: 800, whiteSpace: "nowrap", background: on ? "#1F7A8C" : "rgba(43,35,64,.05)", color: on ? "#fff" : "#5A4E7A", border: "none" } };
+    });
+    const paletteResults = results.map((r, i) => {
+      const active = i === this.state.pIndex;
+      return {
+        title: r.title, sub: r.sub, icon: r.icon, type: r.type,
+        onClick: () => r.act(), onHover: () => this.setState({ pIndex: i }),
+        style: { display: "flex", alignItems: "center", gap: "13px", width: "100%", padding: "11px 13px", borderRadius: "13px", border: "none", background: active ? "rgba(31,122,140,.1)" : "transparent" },
+        iconStyle: { width: "38px", height: "38px", borderRadius: "11px", display: "grid", placeItems: "center", fontSize: "18px", flexShrink: 0, color: "#fff", background: r.color },
+        tagStyle: { fontSize: "10.5px", fontWeight: 800, letterSpacing: ".05em", textTransform: "uppercase", color: r.color, background: "rgba(43,35,64,.05)", padding: "4px 9px", borderRadius: "999px", flexShrink: 0 },
+      };
+    });
+
+    // active profile, bell + avatar menu
+    const me = this.activeProfile();
+    const unread = this.notifs.filter((n) => n.unread).length;
+    const notifsView = this.notifs.map((n) => ({
+      ...n,
+      iconStyle: { width: "38px", height: "38px", borderRadius: "11px", display: "grid", placeItems: "center", fontSize: "18px", flexShrink: 0, background: n.color + "22" },
+      rowStyle: { display: "flex", gap: "12px", padding: "11px 14px", borderRadius: "13px", background: n.unread ? "rgba(31,122,140,.05)" : "transparent", alignItems: "flex-start", width: "100%", textAlign: "left", border: "none" },
+    }));
+    const profilesView = this.profiles.map((p, i) => {
+      const on = this.state.profileIdx === i;
+      return {
+        name: p.name, avatar: p.avatar, sub: p.sub, band: p.band, onClick: () => this.switchProfile(i),
+        rowStyle: { display: "flex", alignItems: "center", gap: "11px", padding: "9px 10px", borderRadius: "12px", width: "100%", textAlign: "left", border: "none", background: on ? "rgba(31,122,140,.08)" : "transparent" },
+        avatarStyle: { width: "36px", height: "36px", borderRadius: "50%", display: "grid", placeItems: "center", fontSize: "19px", background: "#EAF6F4", border: on ? "2.5px solid var(--c-primary,#1F7A8C)" : "2px solid rgba(43,35,64,.1)", flexShrink: 0 },
+        active: on,
+      };
+    });
+
+    // admin (Skool-mode parent zone)
+    const profilesAdmin = this.profiles.map((p) => {
+      const on = this.state.posting[p.name] !== false;
+      return {
+        name: p.name, avatar: p.avatar, sub: p.sub, on, onToggle: () => this.togglePosting(p.name),
+        switchStyle: { width: "40px", height: "23px", borderRadius: "999px", background: on ? "#1B2A2E" : "#D9D6D0", position: "relative", flexShrink: 0, border: "none", cursor: "pointer" },
+        knobStyle: { position: "absolute", top: "2.5px", left: on ? "20px" : "2.5px", width: "18px", height: "18px", borderRadius: "50%", background: "#fff" },
+      };
+    });
+    const STATUS = {
+      approved: { label: "Approved", style: { fontSize: "12px", fontWeight: 700, color: "#2E7D52", background: "#E8F3EC", padding: "5px 12px", borderRadius: "7px" } },
+      declined: { label: "Declined", style: { fontSize: "12px", fontWeight: 700, color: "#C0392B", background: "#FBEAE7", padding: "5px 12px", borderRadius: "7px" } },
+    };
+    const pendingView = this.pendingMedia.map((m) => {
+      const s = this.state.mediaStatus[m.id];
+      return {
+        ...m, resolved: !!s, notResolved: !s,
+        statusLabel: s ? STATUS[s].label : "", statusStyle: s ? STATUS[s].style : {},
+        approve: () => this.setMedia(m.id, "approved"), decline: () => this.setMedia(m.id, "declined"),
+      };
+    });
+    const pendingPending = pendingView.filter((m) => !m.resolved).length;
+
+    return {
+      rootStyle: { "--c-primary": prim, "--c-primary-deep": deep, "--btn-shadow": t.btnShadow, "--card-shadow": t.cardShadow, "--radius": t.radius + "px", "--radius-lg": t.radiusLg + "px", "--shadow-off": t.shadow + "px", fontWeight: t.weight, minHeight: "100vh" },
+      depthStyle,
+      me,
+      isAdmin: page === "admin", goAdmin: () => { this.setState({ menuOpen: false }); this.go("admin"); },
+      profilesAdmin, pendingView, pendingPending, pendingEmpty: pendingPending === 0,
+      bellOpen: this.state.bellOpen, menuOpen: this.state.menuOpen,
+      toggleBell: () => this.setState({ bellOpen: !this.state.bellOpen, menuOpen: false }),
+      toggleMenu: () => this.setState({ menuOpen: !this.state.menuOpen, bellOpen: false }),
+      closeOverlays: () => this.setState({ bellOpen: false, menuOpen: false }),
+      notifsView, unread, hasUnread: unread > 0, profilesView,
+      nav, myCommunities, followedView,
+      pinOpen, pinProfile, pinDots, pinKeys, pinError: this.state.pinError, closePin: () => this.closePin(),
+      goProfile: () => this.go("profile"), goHome: () => this.go("home"), goDiscover: () => this.go("discover"),
+      goProfileFromMenu: () => { this.setState({ menuOpen: false }); this.go("profile"); },
+      openPalette: () => this.openPalette(), closePalette: () => this.closePalette(),
+      openPsalm139: () => this.go("tag", { tag: "Psalm 139:14" }),
+      noop: () => {}, stop: (e) => e.stopPropagation(),
+      showGabriel: this.props.showGabriel !== false,
+
+      isHome: page === "home", isDiscover: page === "discover", isCommunity: page === "community",
+      isPrayer: page === "prayer", isProfile: page === "profile", isChat: page === "chat", isTag: page === "tag", isFilter: page === "filter", isCalendar: page === "calendar",
+
+      composer: this.state.composer, onComposer: (e) => this.setState({ composer: e.target.value }),
+      composerChips, filters, feedView, quickActions, trendingView, eventsView,
+      showAutoTags: !!this.state.composer.trim() && autoTags.length > 0,
+      tagsOpen: this.state.tagsOpen, toggleTags: () => this.setState({ tagsOpen: !this.state.tagsOpen }),
+      tagsCaret: this.state.tagsOpen ? "\u25be" : "\u25b8",
+      autoTagChips, autoTagSummary, autoTagCount: autoTags.length,
+      newTag: this.state.newTag, onNewTag: (e) => this.setState({ newTag: e.target.value }),
+      onNewTagKey: (e) => this.onNewTagKey(e), addComposerTag: () => this.addComposerTag(),
+      visOpen: this.state.visOpen, toggleVisOpen: () => this.setState({ visOpen: !this.state.visOpen }),
+      visLabel: this.visLabel(), visIcon: this.visIcon(), visMode: this.state.visMode, visIsSelect: this.state.visMode === "select",
+      visModeRadios, visCommunityChecks,
+      calWeeks, calRsvp, calMonth: "June 2026", weekdays: ["S", "M", "T", "W", "T", "F", "S"],
+      heroShoal: this.shoal(14, "#9FDCE6"), railShoal: this.shoalRail(11, "#1F7A8C"), connShoal: this.shoal(9, "#1F7A8C"),
+
+      discoverView,
+      community, communityFeed: communityFeedSafe, childCommunities,
+      expanded, shellStyle, sidebarStyle, headerStyle, collapseBtnStyle,
+      collapseIcon: expanded ? "«" : "»", toggleNav: () => this.setState({ navCollapsed: !this.state.navCollapsed }),
+      profileBtnStyle, myCommunitiesTitle: "Your communities",
+
+      prayerView, prayerDraft: this.state.prayerDraft, onPrayerDraft: (e) => this.setState({ prayerDraft: e.target.value }),
+
+      myPosts, badges,
+
+      dmThreads, activeThread, activeMessages, dmDraft: this.state.dmDraft,
+      onDmDraft: (e) => this.setState({ dmDraft: e.target.value }), onDmKey: (e) => this.onDmKey(e), sendDm: () => this.sendDm(),
+
+      tagTitle: this.clean(tagLabel), tagKind: tagIsScripture ? "Scripture" : (this.tagType(tagLabel) === "feeling" ? "Feeling" : "Topic"),
+      tagIsScripture, tagVerse: this.verses[this.clean(tagLabel)] ? '"' + this.verses[this.clean(tagLabel)] + '"' : "",
+      tagEyebrowColor: this.tagColor(tagLabel), tagReach: tagFeedSafe.length + 2,
+      tagHeaderStyle: { background: "#fff", borderRadius: "22px", border: "1.5px solid rgba(43,35,64,.06)", boxShadow: "0 8px 22px rgba(43,35,64,.06)", padding: "24px", borderLeft: "5px solid " + this.tagColor(tagLabel) },
+      tagFeed: tagFeedSafe,
+      toggleFollowTag: () => this.toggleFollowTag(),
+      followBtnLabel: following ? "Riding ✓" : "Follow current",
+      followBtnStyle: { padding: "9px 18px", borderRadius: "999px", fontSize: "13px", fontWeight: 800, border: "none", background: following ? "rgba(31,122,140,.14)" : prim, color: following ? "#15616F" : "#fff", boxShadow: following ? "none" : "0 " + t.shadow + "px 0 0 " + deep },
+
+      filterQuery: this.state.filterQuery, onFilterQuery: (e) => this.setState({ filterQuery: e.target.value }),
+      filterSelected, filterHasSelected: this.state.filterTags.length > 0, clearFilter: () => this.clearFilter(),
+      filterTagsAvailable, filterNoTags: filterTagsAvailable.length === 0,
+      filterFeed, filterCount: filterFeed.length, filterEmpty: filterFeed.length === 0,
+
+      paletteOpen: this.state.paletteOpen, query: this.state.query, paletteRef: this.paletteRef,
+      onQuery: (e) => this.setState({ query: e.target.value, pIndex: 0 }), onPaletteKey: (e) => this.onPaletteKey(e),
+      facets: facetList, paletteResults,
+      hasQuery: !!this.state.query.trim(), noQuery: !this.state.query.trim(),
+      resultsLabel: results.length + " in the water", emptyResults: results.length === 0,
+    };
+  }
+}
+</script>
+</body>
+</html>

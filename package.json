@@ -1,5 +1,5 @@
 {
-  "name": "haven-kids",
+  "name": "fishhaven",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
   },
   "dependencies": {
     "@auth/supabase-adapter": "^1.7.4",
@@ -16,13 +17,17 @@
     "next-auth": "5.0.0-beta.25",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "resend": "^4.0.1"
+    "resend": "^4.0.1",
+    "server-only": "^0.0.1"
   },
   "devDependencies": {
     "@types/node": "^22.9.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
-    "typescript": "^5.7.2"
+    "eslint": "^9.39.4",
+    "eslint-config-next": "^15.5.19",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.9"
   },
   "engines": {
     "node": ">=20.0.0"

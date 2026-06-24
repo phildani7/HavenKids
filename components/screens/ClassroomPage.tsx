@@ -1,5 +1,5 @@
 "use client";
-/* Haven Kids — standalone Classroom page. Shows every lesson across
+/* FishHaven — standalone Classroom page. Shows every lesson across
    the communities the kid is "in" with a working LessonViewer. */
 
 import { useState } from "react";

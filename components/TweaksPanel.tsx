@@ -10,6 +10,7 @@ export function TweaksPanel({
   setTheme,
   strikes,
   setStrikes,
+  onResetStrikes,
   avatar,
   setAvatar,
 }: {
@@ -17,6 +18,7 @@ export function TweaksPanel({
   setTheme: Dispatch<SetStateAction<Theme>>;
   strikes: number;
   setStrikes: Dispatch<SetStateAction<number>>;
+  onResetStrikes: () => void;
   avatar: string;
   setAvatar: Dispatch<SetStateAction<string>>;
 }) {
@@ -94,7 +96,7 @@ export function TweaksPanel({
               {[0, 1, 2, 3].map((n) => (
                 <button
                   key={n}
-                  onClick={() => setStrikes(n)}
+                  onClick={() => (n === 0 ? onResetStrikes() : setStrikes(n))}
                   className={"chip " + (strikes === n ? "is-active" : "")}
                   style={{ cursor: "pointer", padding: "6px 12px" }}
                 >
